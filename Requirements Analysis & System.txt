@@ -1,0 +1,21 @@
+Phase 1: Requirements Analysis & System Design (Week 1: May 23 – May 30)
+What it is: Locking down exactly what the system does and how data flows before writing code.
+
+Our Goal: Define the database schema (PostgreSQL), outline the API endpoints (Node.js), and map out the UI/UX component structure (React). We will also finalize the Python logic for the rule-based matching engine.
+
+Phase 2: Implementation / Core Coding (Weeks 2 & 3: May 30 – June 13)
+What it is: The heavy-lifting development phase.
+
+Sprint 1 (Week 2): Build the foundational architecture. Auth, Database setup, Profile management, and the Waste Upload/Search modules.
+
+Sprint 2 (Week 3): Build the "smart" features. The Python matching engine integration, the Exchange Request workflow, and the Sustainability Analytics dashboard math.
+
+Phase 3: Testing & Integration (Week 4, Part 1: June 13 – June 17)
+What it is: Making sure nothing is broken.
+
+Our Goal: End-to-end testing. Ensuring that when Company A requests a waste batch, Company B actually sees it on their dashboard, and the database updates correctly without data leaks.
+
+Phase 4: Deployment & Release (Week 4, Part 2: June 17 – June 20)
+What it is: Moving the app from your local computer to the live internet.
+
+Our Goal: Deploy the React frontend (e.g., Vercel/Netlify), the Node.js/Python backend (e.g., Render/Railway), and the PostgreSQL database (e.g., Supabase/Neon).
