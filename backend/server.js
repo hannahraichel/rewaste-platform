@@ -3,7 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const wasteRoutes = require('./routes/wasteRoutes');
-
+const exchangeRoutes = require('./routes/exchangeRoutes');
 // Load environment configurations
 dotenv.config();
 
@@ -16,6 +16,7 @@ app.use(express.json()); // Parses incoming JSON requests
 // Mount Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/waste', wasteRoutes);
+app.use('/api/exchange', exchangeRoutes);
 
 // Health Check Endpoint
 app.get('/', (req, res) => {
