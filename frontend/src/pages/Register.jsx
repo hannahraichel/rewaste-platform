@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom'; 
 
 const Register = () => {
     const { login } = useContext(AuthContext);
@@ -94,6 +94,9 @@ const Register = () => {
                     </div>
 
                     <button type="submit" className="btn">Create Account</button>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '15px', marginBottom: 0 }}>
+    Already have an industry account? <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>Sign In Here</Link>
+</p>
                 </form>
             </div>
         </div>

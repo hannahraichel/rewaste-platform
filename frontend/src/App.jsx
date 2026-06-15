@@ -4,7 +4,7 @@ import { AuthProvider, AuthContext } from './context/AuthContext';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import './index.css';
-
+import Login from './pages/Login';
 // A high-order wrapper component to protect our private route paths
 const ProtectedRoute = ({ children }) => {
   const { token } = useContext(AuthContext);
@@ -16,17 +16,18 @@ function AppContent() {
 
   return (
     <Router>
-      <Routes>
-        {/* If logged in, visiting /register redirects to dashboard automatically */}
-        <Route path="/register" element={token ? <Navigate to="/" /> : <Register />} />
-        
-        {/* Core Private Dashboard Hub Route */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-      </Routes>
+    <Routes>
+  {/* Public Authentication Flow Links */}
+  <Route path="/register" element={token ? <Navigate to="/" /> : <Register />} />
+  <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
+  
+  {/* Private Dashboard Link */}
+  <Route path="/" element={
+    <ProtectedRoute>
+      <Dashboard />
+    </ProtectedRoute>
+  } />
+</Routes>
     </Router>
   );
 }

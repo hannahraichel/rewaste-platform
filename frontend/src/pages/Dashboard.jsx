@@ -1,11 +1,109 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { RefreshCw, MapPin, Layers, Percent, LogOut, PlusCircle } from 'lucide-react';
+import { RefreshCw, MapPin, Layers, Percent, LogOut, PlusCircle, MessageSquare } from 'lucide-react';
 
+// ==========================================================
+// SUB-COMPONENT FOR CLEAN CHAT STATE ISOLATION
+// ==========================================================
+const HistoryRow = ({ h, currentUser }) => {
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [chatLogs, setChatLogs] = useState(h.communications || []);
+    const [typedMsg, setTypedMsg] = useState('');
+
+    const sendThreadMsg = async (e) => {
+        e.preventDefault();
+        if (!typedMsg.trim()) return;
+        try {
+            const res = await axios.post(`/api/exchange/message/${h.id}`, { message_text: typedMsg });
+            setChatLogs(res.data.communications);
+            setTypedMsg('');
+        } catch (err) {
+            alert("Message routing delivery failed.");
+        }
+    };
+
+    const partnerName = currentUser.company_name === h.seller_name ? h.buyer_company : h.seller_name;
+
+    return (
+        <div style={{ background: 'var(--bg-dark)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                <div>
+                    <span style={{ fontSize: '11px', color: h.status === 'approved' ? '#10b981' : '#ef4444', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                        ✓ Deal {h.status}
+                    </span>
+                    <h3 style={{ margin: '5px 0 0 0', color: '#fff', fontSize: '18px' }}>{h.material_title}</h3>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
+                        Partner Industry: <strong style={{ color: '#fff' }}>{partnerName}</strong>
+                    </p>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
+                        Date Secured: {new Date(h.created_at).toLocaleDateString()}
+                    </p>
+                </div>
+                <button 
+                    onClick={() => setIsChatOpen(!isChatOpen)} 
+                    className="btn" 
+                    style={{ width: 'auto', padding: '8px 16px', background: isChatOpen ? '#475569' : 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                    <MessageSquare size={16} /> {isChatOpen ? "Close Logistics Thread" : "Open Communications Chat"}
+                </button>
+            </div>
+
+            {/* EXPANDABLE LOGISTICS CHAT MODULE */}
+            {isChatOpen && (
+                <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px dashed var(--border)' }}>
+                    <div style={{ background: '#0b0f19', padding: '15px', borderRadius: '6px', maxHeight: '200px', overflowY: 'auto', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {chatLogs.length === 0 ? (
+                            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0, textAlign: 'center' }}>
+                                Coordinate dispatch notes, vehicle details, and pick-up arrangements here.
+                            </p>
+                        ) : (
+                            chatLogs.map((msg, index) => (
+                                <div 
+                                    key={index} 
+                                    style={{ 
+                                        alignSelf: msg.sender_id === currentUser.id ? 'flex-end' : 'flex-start', 
+                                        background: msg.sender_id === currentUser.id ? 'var(--primary-dark)' : '#1e293b', 
+                                        padding: '8px 14px', 
+                                        borderRadius: '12px', 
+                                        maxWidth: '75%', 
+                                        boxSizing: 'border-box' 
+                                    }}
+                                >
+                                    <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px', fontWeight: 'bold' }}>
+                                        {msg.sender_name}
+                                    </span>
+                                    <p style={{ margin: 0, fontSize: '14px', color: '#fff', wordBreak: 'break-word' }}>
+                                        {msg.text}
+                                    </p>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                    <form onSubmit={sendThreadMsg} style={{ display: 'flex', gap: '10px' }}>
+                        <input 
+                            type="text" 
+                            value={typedMsg} 
+                            onChange={(e) => setTypedMsg(e.target.value)} 
+                            placeholder="Type dispatch updates (e.g., 'Truck arrives tomorrow at 10 AM')" 
+                            style={{ flex: 1, padding: '10px' }} 
+                        />
+                        <button type="submit" className="btn" style={{ width: 'auto', padding: '10px 20px' }}>Send</button>
+                    </form>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ==========================================================
+// MAIN DASHBOARD COMPONENT HUB
+// ==========================================================
 const Dashboard = () => {
     const { user, logout } = useContext(AuthContext);
     const [matches, setMatches] = useState([]);
+    const [incomingRequests, setIncomingRequests] = useState([]);
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -31,9 +129,34 @@ const Dashboard = () => {
         setLoading(false);
     };
 
+    const fetchIncomingRequests = async () => {
+        try {
+            const res = await axios.get('/api/exchange/incoming');
+            setIncomingRequests(res.data);
+        } catch (err) {
+            console.error("Failed to load incoming transactions.", err);
+        }
+    };
+
+    const fetchExchangeHistory = async () => {
+        try {
+            const res = await axios.get('/api/exchange/history');
+            setHistory(res.data);
+        } catch (err) {
+            console.error("Failed to load history.", err);
+        }
+    };
+
     useEffect(() => {
-        fetchSmartMatches();
-    }, []);
+        const loadDashboardData = async () => {
+            setLoading(true);
+            await fetchSmartMatches();
+            await fetchIncomingRequests();
+            await fetchExchangeHistory();
+            setLoading(false);
+        };
+        loadDashboardData();
+    }, [user]);
 
     const handleUploadChange = (e) => {
         setUploadData({ ...uploadData, [e.target.name]: e.target.value });
@@ -54,7 +177,7 @@ const Dashboard = () => {
 
             alert("Industrial resource added to inventory!");
             setUploadData({ title: '', material_type: 'Wood Mills', quantity: '', unit: 'tons', description: '', keywords: '' });
-            fetchSmartMatches(); // Refresh stream
+            fetchSmartMatches();
         } catch (err) {
             alert(err.response?.data?.error || "Failed to publish listing.");
         }
@@ -67,6 +190,18 @@ const Dashboard = () => {
             fetchSmartMatches();
         } catch (err) {
             alert(err.response?.data?.error || "Transaction submission failed.");
+        }
+    };
+
+    const handleUpdateStatus = async (requestId, targetStatus) => {
+        try {
+            const res = await axios.put(`/api/exchange/status/${requestId}`, { status: targetStatus });
+            alert(res.data.message);
+            fetchSmartMatches();
+            fetchIncomingRequests();
+            fetchExchangeHistory();
+        } catch (err) {
+            alert(err.response?.data?.error || "Failed to update transaction status.");
         }
     };
 
@@ -175,7 +310,59 @@ const Dashboard = () => {
                         ))}
                     </div>
                 </div>
+            </div>
 
+            {/* TRANSACTION MONITOR PANEL */}
+            <div style={{ marginTop: '50px', background: 'var(--bg-card)', padding: '30px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <h2 style={{ textAlign: 'left', marginBottom: '20px' }}>Incoming Material Exchange Inquiries</h2>
+                
+                {incomingRequests.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)', margin: 0 }}>No active industrial procurement offers received for your items yet.</p>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {incomingRequests.map((req) => (
+                            <div key={req.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: 'var(--bg-dark)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                <div>
+                                    <h4 style={{ margin: '0 0 5px 0', color: '#fff', fontSize: '16px' }}>
+                                        Offer from: <span style={{ color: 'var(--primary)' }}>{req.buyer_company}</span>
+                                    </h4>
+                                    <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)' }}>
+                                        Requested Asset: <strong>{req.material_title}</strong> | Origin: {req.district}, {req.state}
+                                    </p>
+                                    <span style={{ display: 'inline-block', marginTop: '8px', fontSize: '12px', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold', background: req.status === 'pending' ? '#eab30820' : req.status === 'approved' ? '#10b98120' : '#ef444420', color: req.status === 'pending' ? '#eab308' : req.status === 'approved' ? '#10b981' : '#ef4444' }}>
+                                        Status: {req.status.toUpperCase()}
+                                    </span>
+                                </div>
+                                
+                                {req.status === 'pending' && (
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <button onClick={() => handleUpdateStatus(req.id, 'approved')} className="btn" style={{ width: 'auto', padding: '8px 15px', background: 'var(--primary)', fontSize: '14px' }}>
+                                            Approve Deal
+                                        </button>
+                                        <button onClick={() => handleUpdateStatus(req.id, 'rejected')} className="btn" style={{ width: 'auto', padding: '8px 15px', background: '#ef4444', fontSize: '14px' }}>
+                                            Decline
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* TRANSACTION HISTORY PANEL */}
+            <div style={{ marginTop: '50px', background: 'var(--bg-card)', padding: '30px', borderRadius: '12px', border: '1px solid var(--border)', borderTop: '4px solid var(--primary)' }}>
+                <h2 style={{ textAlign: 'left', marginBottom: '20px' }}>Industrial Exchange History & Communications</h2>
+                
+                {history.length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)', margin: 0 }}>No historical transactions found in your archive archives.</p>
+                ) : (
+                    <div>
+                        {history.map((h) => (
+                            <HistoryRow key={h.id} h={h} currentUser={user} />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );
