@@ -158,4 +158,68 @@ router.get('/smart-matches', authMiddleware, async (req, res) => {
         res.status(500).json({ error: "Internal server bottleneck handling smart matches." });
     }
 });
+// ==========================================================
+// GET ECO-ANALYTICS METRICS FOR THE LOGGED-IN INDUSTRY
+// ==========================================================
+router.get('/analytics/sustainability', authMiddleware, async (req, res) => {
+    const industry_id = req.user.id;
+
+    try {
+        // FIXED: Select quantity from the waste_listings table (wl.quantity) instead of er.quantity
+        const metricsQuery = await pool.query(
+            `SELECT wl.quantity, wl.material_type, er.status
+             FROM exchange_requests er
+             JOIN waste_listings wl ON er.listing_id = wl.id
+             WHERE er.status IN ('approved', 'completed') AND (er.buyer_id = $1 OR wl.generator_id = $1)`,
+            [industry_id]
+        );
+
+        let totalTonsDiverted = 0;
+        let carbonEmissionsSaved = 0; // Measured in kg of CO2
+
+        metricsQuery.rows.forEach(row => {
+            let weightInTons = parseFloat(row.quantity);
+            totalTonsDiverted += weightInTons;
+
+            // Environmental Impact Coefficients (EPA standard models)
+            if (row.material_type === 'Wood Mills' || row.material_type === 'Wood & Timber Waste') {
+                carbonEmissionsSaved += weightInTons * 450;
+            } else if (row.material_type === 'Agro-Processing') {
+                carbonEmissionsSaved += weightInTons * 600;
+            } else if (row.material_type === 'Textiles') {
+                carbonEmissionsSaved += weightInTons * 800;
+            } else {
+                carbonEmissionsSaved += weightInTons * 300;
+            }
+        });
+
+        res.json({
+            total_listings_closed: metricsQuery.rows.length,
+            total_tons_diverted: Math.round(totalTonsDiverted * 100) / 100,
+            co2_saved_kg: Math.round(carbonEmissionsSaved)
+        });
+    } catch (err) {
+        console.error("Backend Analytics Error:", err.message);
+        res.status(500).json({ error: "Failed to compile environmental metric trackers." });
+    }
+});
+// ==========================================================
+// GET LISTINGS PUBLISHED BY THE LOGGED-IN INDUSTRY
+// ==========================================================
+router.get('/my-inventory', authMiddleware, async (req, res) => {
+    const generator_id = req.user.id;
+
+    try {
+        const myItems = await pool.query(
+            `SELECT * FROM waste_listings 
+             WHERE generator_id = $1 
+             ORDER BY created_at DESC`,
+            [generator_id]
+        );
+        res.json(myItems.rows);
+    } catch (err) {
+        console.error("Inventory Fetch Error:", err.message);
+        res.status(500).json({ error: "Failed to load your resource inventory tracking cards." });
+    }
+});
 module.exports = router;

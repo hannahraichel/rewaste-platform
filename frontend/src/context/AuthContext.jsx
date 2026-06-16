@@ -8,23 +8,25 @@ export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(localStorage.getItem('token') || '');
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchUserProfile = async () => {
-            if (token) {
-                try {
-                    // Set default authorization token header for all Axios actions
-                    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                    const res = await axios.get('/api/auth/profile');
-                    setUser(res.data);
-                } catch (err) {
-                    console.error("Session expired or invalid token.");
-                    logout();
-                }
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+        if (token) {
+            try {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                const res = await axios.get('/api/auth/profile');
+                
+                // If the backend has a nested .user object, extract it; otherwise, use the raw flat payload
+                const cleanUserData = res.data.user ? res.data.user : res.data;
+                setUser(cleanUserData);
+            } catch (err) {
+                console.error("Session expired or invalid token.");
+                logout();
             }
-            setLoading(false);
-        };
-        fetchUserProfile();
-    }, [token]);
+        }
+        setLoading(false);
+    };
+    fetchUserProfile();
+}, [token]);
 
     const login = (userData, userToken) => {
         localStorage.setItem('token', userToken);

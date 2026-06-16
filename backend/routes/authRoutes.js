@@ -23,10 +23,10 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
 
-        // Save to PostgreSQL database
+        // Save to PostgreSQL database (Defaults is_admin to false on registration)
         const newUser = await pool.query(
             `INSERT INTO industries (company_name, email, password_hash, industry_type, district, state, raw_material_keywords) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, company_name, email, industry_type`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, company_name, email, industry_type, is_admin`,
             [company_name, email, password_hash, industry_type, district, state, raw_material_keywords || []] // [cite: 11]
         );
 
@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Check if industry user exists
+        // Check if industry user exists (SELECT * automatically pulls the new is_admin column)
         const userResult = await pool.query('SELECT * FROM industries WHERE email = $1', [email]);
         if (userResult.rows.length === 0) {
             return res.status(400).json({ error: "Invalid email or password credentials." });
@@ -79,9 +79,9 @@ router.post('/login', async (req, res) => {
 // ==========================================
 router.get('/profile', authMiddleware, async (req, res) => {
     try {
-        // req.user.id is populated by our authMiddleware validation layer
+        // FIXED: Added is_admin to the explicit column selection list
         const userResult = await pool.query(
-            'SELECT id, company_name, email, industry_type, district, state, raw_material_keywords, created_at FROM industries WHERE id = $1', 
+            'SELECT id, company_name, email, industry_type, district, state, raw_material_keywords, is_admin, created_at FROM industries WHERE id = $1', 
             [req.user.id] // [cite: 11]
         );
         
@@ -89,11 +89,31 @@ router.get('/profile', authMiddleware, async (req, res) => {
             return res.status(404).json({ error: "Industrial profile not found." });
         }
 
+        res.json({ user: userResult.rows[0] });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Failed to retrieve profile data." });
+    }
+});
+// ==========================================
+// 3. GET PROFILE DATA (Protected Route)
+// ==========================================
+router.get('/profile', authMiddleware, async (req, res) => {
+    try {
+        const userResult = await pool.query(
+            'SELECT id, company_name, email, industry_type, district, state, raw_material_keywords, is_admin, created_at FROM industries WHERE id = $1', 
+            [req.user.id]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: "Industrial profile not found." });
+        }
+
+        // Return a clean, flat object instead of nesting it inside a 'user' key
         res.json(userResult.rows[0]);
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: "Failed to retrieve profile data." });
     }
 });
-
 module.exports = router;

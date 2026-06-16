@@ -4,6 +4,9 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const wasteRoutes = require('./routes/wasteRoutes');
 const exchangeRoutes = require('./routes/exchangeRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+
+
 // Load environment configurations
 dotenv.config();
 
@@ -17,6 +20,7 @@ app.use(express.json()); // Parses incoming JSON requests
 app.use('/api/auth', authRoutes);
 app.use('/api/waste', wasteRoutes);
 app.use('/api/exchange', exchangeRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health Check Endpoint
 app.get('/', (req, res) => {
