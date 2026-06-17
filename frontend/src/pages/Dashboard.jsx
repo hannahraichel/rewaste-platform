@@ -194,7 +194,15 @@ const Dashboard = () => {
             alert("Failed to moderate the requested listing.");
         }
     };
-
+const handleVerifyIndustry = async (id) => {
+    try {
+        const res = await axios.patch(`/api/admin/verify-industry/${id}`);
+        alert(res.data.message);
+        fetchAdminDashboard(); // Instantly re-render and refresh the admin data grid lists
+    } catch (err) {
+        alert("Failed to update industry verification profile status.");
+    }
+};
    useEffect(() => {
     const loadDashboardData = async () => {
         setLoading(true);
@@ -343,9 +351,29 @@ const Dashboard = () => {
                                             <h4 style={{ margin: 0, color: '#fff' }}>{ind.company_name}</h4>
                                             <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>Sector: {ind.industry_type} | {ind.district}</p>
                                         </div>
-                                        <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '3px 6px', borderRadius: '4px', background: ind.is_admin ? '#ef444420' : '#10b98120', color: ind.is_admin ? '#ef4444' : '#10b981' }}>
-                                            {ind.is_admin ? "SYSTEM ADMIN" : "VERIFIED HUB"}
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    {ind.is_verified ? (
+        <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', background: ind.is_admin ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', color: ind.is_admin ? '#ef4444' : '#10b981' }}>
+            {ind.is_admin ? "SYSTEM ADMIN" : "✓ VERIFIED"}
+        </span>
+    ) : (
+        <button 
+            onClick={() => handleVerifyIndustry(ind.id)}
+            style={{
+                backgroundColor: '#fbbf24',
+                color: '#0f172a',
+                border: 'none',
+                padding: '4px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer'
+            }}
+        >
+            Approve Hub
+        </button>
+    )}
+</div>
                                     </div>
                                 ))}
                             </div>

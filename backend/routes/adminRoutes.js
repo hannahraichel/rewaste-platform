@@ -22,17 +22,19 @@ const adminCheck = async (req, res, next) => {
 // ==========================================================
 router.get('/dashboard', authMiddleware, adminCheck, async (req, res) => {
     try {
-        // 1. Get all registered industries
-        const industriesRes = await pool.query('SELECT id, company_name, industry_type, district, is_admin FROM industries ORDER BY company_name ASC');
+        // Pull all industries sorted so unverified ones appear first
+        const industriesRes = await pool.query(
+            'SELECT id, company_name, industry_type, district, is_admin, is_verified FROM industries ORDER BY is_verified ASC, company_name ASC'
+        );
         
-        // 2. Get all global listings
+        // Get all global listings
         const listingsRes = await pool.query(
             `SELECT wl.*, i.company_name FROM waste_listings wl 
              JOIN industries i ON wl.generator_id = i.id 
              ORDER BY wl.created_at DESC`
         );
 
-        // 3. Calculate platform-wide aggregate SDG impact
+        // Calculate platform-wide aggregate SDG impact
         const globalMetrics = await pool.query(
             `SELECT wl.quantity, wl.material_type 
              FROM exchange_requests er
@@ -65,6 +67,20 @@ router.get('/dashboard', authMiddleware, adminCheck, async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: "Failed to gather administrative overview data." });
+    }
+});
+
+// ==========================================================
+// ADMIN ACTION: VERIFY / APPROVE A REGISTERED COMPANY
+// ==========================================================
+router.patch('/verify-industry/:id', authMiddleware, adminCheck, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('UPDATE industries SET is_verified = TRUE WHERE id = $1', [id]);
+        res.json({ message: "Facility successfully verified and authorized on the platform network." });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Failed to update industry verification status." });
     }
 });
 
