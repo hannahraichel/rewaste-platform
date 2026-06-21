@@ -1,87 +1,109 @@
+/* ==========================================================
+   DEFAULT LIGHT MODE COLOR PALETTE
+   ========================================================== */
 :root {
-  --primary: #10b981;
-  --primary-dark: #059669;
-  --bg-dark: #0f172a;
-  --bg-card: #1e293b;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: #334155;
+  --bg-main: #f8fafc;        /* Soft off-white canvas slate */
+  --bg-card: #ffffff;        /* Crisp pure white element boxes */
+  --bg-dark: #ffffff;        /* Slightly darker grey for inputs to stand out */
+  --text-main: #0f172a;      /* Dark slate dominant lettering */
+  --text-muted: black;     /* Deep slate for clear secondary readability */
+  --border: #bac1ca;         /* Highly visible clean layout lines */
+  --primary: #136449;        /* Emerald Green circle economy brand accent */
+  --primary-dark: #085f43;   /* Hover states button focus color */
 }
 
+/* ==========================================================
+   DARK MODE COLOR OVERRIDES (Triggered via data attribute)
+   ========================================================== */
+[data-theme='dark'] {
+  --bg-main: #101e40;        /* Deep midnight slate background */
+  --bg-card: #1c2f4e;        /* Slate card wrapper backgrounds */
+  --bg-dark: #0b0f19;        /* Dark solid sub-containers/inputs */
+  --text-main: #f8fafc;      /* Crisp off-white dominant lettering */
+  --text-muted: #94a3b8;     /* Soft slate metadata sub-text */
+  --border: #000000;         /* Muted layout partition grid borders */
+  --primary: #34b489;        /* Keeps consistent brand color markers */
+  --primary-dark: #047857;   /* Deep emerald dark theme button hover */
+}
+
+/* Consolidated global baseline element resets */
 body {
-  margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-main);
   color: var(--text-main);
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-main);
 }
 
 .auth-card {
-  background: var(--bg-card);
+  background-color: var(--bg-card);
   border: 1px solid var(--border);
   padding: 40px;
   border-radius: 12px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-}
-
-h2 {
-  color: var(--primary);
-  margin-top: 0;
-  margin-bottom: 24px;
-  text-align: center;
+  max-width: 450px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
 .form-group {
   margin-bottom: 20px;
 }
 
+h2 {
+  color: var(--text-main);
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
 label {
   display: block;
-  margin-bottom: 8px;
+  text-align: left;
+  margin-bottom: 6px;
   font-size: 14px;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
 input, select {
   width: 100%;
-  padding: 12px;
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
+  padding: 10px 12px;
   border-radius: 6px;
+  background-color: var(--bg-dark);
+  border: 1px solid var(--border);
   color: var(--text-main);
   box-sizing: border-box;
-  font-size: 15px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 input:focus, select:focus {
   border-color: var(--primary);
+  background-color: var(--bg-card); /* Changes opacity color on focus to pop text out */
   outline: none;
 }
 
 .btn {
-  width: 100%;
-  padding: 14px;
-  background: var(--primary);
+  background-color: var(--primary);
   color: white;
   border: none;
+  width: 100%;
+  padding: 12px;
   border-radius: 6px;
-  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background-color 0.2s ease;
 }
 
 .btn:hover {
-  background: var(--primary-dark);
+  background-color: var(--primary-dark);
 }
 
 .error-msg {
