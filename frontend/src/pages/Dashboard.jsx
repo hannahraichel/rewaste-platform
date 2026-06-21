@@ -111,9 +111,14 @@ const Dashboard = () => {
     // Eco-Analytics State Tracker
     const [ecoData, setEcoData] = useState({ total_listings_closed: 0, total_tons_diverted: 0, co2_saved_kg: 0 });
 
-    // Administrative System View States[cite: 1]
+    // Administrative System View States
     const [isAdminMode, setIsAdminMode] = useState(false);
     const [adminData, setAdminData] = useState({ industries: [], listings: [], summary: {} });
+
+    // Module 3 Search and Filter States
+    const [searchDistrict, setSearchDistrict] = useState('');
+    const [searchMaterialType, setSearchMaterialType] = useState('');
+    const [isManualSearch, setIsManualSearch] = useState(false);
 
     // Form State
     const [uploadData, setUploadData] = useState({
@@ -135,6 +140,32 @@ const Dashboard = () => {
             setError(err.response?.data?.error || 'Failed to compute matching logistics.');
         }
         setLoading(false);
+    };
+
+    const handleSearchSubmit = async (e) => {
+        if (e) e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+            const res = await axios.get('/api/waste/search', {
+                params: { 
+                    district: searchDistrict || undefined, 
+                    material_type: searchMaterialType || undefined 
+                }
+            });
+            setMatches(res.data);
+            setIsManualSearch(true);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Search query failed on server.');
+        }
+        setLoading(false);
+    };
+
+    const handleClearSearch = () => {
+        setSearchDistrict('');
+        setSearchMaterialType('');
+        setIsManualSearch(false);
+        fetchSmartMatches();
     };
 
     const fetchIncomingRequests = async () => {
@@ -173,7 +204,6 @@ const Dashboard = () => {
         }
     };
 
-    // Admin Core Collector[cite: 1]
     const fetchAdminDashboard = async () => {
         try {
             const res = await axios.get('/api/admin/dashboard');
@@ -188,56 +218,54 @@ const Dashboard = () => {
         try {
             await axios.delete(`/api/admin/listing/${id}`);
             alert("Listing removed successfully.");
-            fetchAdminDashboard(); // Refresh full audit loop
+            fetchAdminDashboard();
             fetchSmartMatches();
         } catch (err) {
             alert("Failed to moderate the requested listing.");
         }
     };
-const handleVerifyIndustry = async (id) => {
-    try {
-        const res = await axios.patch(`/api/admin/verify-industry/${id}`);
-        alert(res.data.message);
-        fetchAdminDashboard(); // Instantly re-render and refresh the admin data grid lists
-    } catch (err) {
-        alert("Failed to update industry verification profile status.");
-    }
-};
-   useEffect(() => {
-    const loadDashboardData = async () => {
-        setLoading(true);
+
+    const handleVerifyIndustry = async (id) => {
         try {
-            // Force a quick sync verification call to find out if the user is an admin
-            const profileCheck = await axios.get('/api/auth/profile');
-            const liveUser = profileCheck.data.user;
-
-            await fetchSmartMatches();
-            await fetchIncomingRequests();
-            await fetchExchangeHistory();
-            await fetchMyInventory();
-            await fetchSustainabilityMetrics();
-
-            // Check against the fresh live database variable instead of the cached context variable
-            if (liveUser && liveUser.is_admin) {
-                await fetchAdminDashboard();
-            }
+            const res = await axios.patch(`/api/admin/verify-industry/${id}`);
+            alert(res.data.message);
+            fetchAdminDashboard();
         } catch (err) {
-            console.error("Error loading secure synchronous platform parameters.", err);
-            
-            // Fallback to existing loading strategy if dedicated profile endpoint isn't wired yet
-            await fetchSmartMatches();
-            await fetchIncomingRequests();
-            await fetchExchangeHistory();
-            await fetchMyInventory();
-            await fetchSustainabilityMetrics();
-            if (user?.is_admin) {
-                await fetchAdminDashboard();
-            }
+            alert("Failed to update industry verification profile status.");
         }
-        setLoading(false);
     };
-    loadDashboardData();
-}, [user]);
+
+    useEffect(() => {
+        const loadDashboardData = async () => {
+            setLoading(true);
+            try {
+                const profileCheck = await axios.get('/api/auth/profile');
+                const liveUser = profileCheck.data.user;
+
+                await fetchSmartMatches();
+                await fetchIncomingRequests();
+                await fetchExchangeHistory();
+                await fetchMyInventory();
+                await fetchSustainabilityMetrics();
+
+                if (liveUser && liveUser.is_admin) {
+                    await fetchAdminDashboard();
+                }
+            } catch (err) {
+                console.error("Error loading secure synchronous platform parameters.", err);
+                await fetchSmartMatches();
+                await fetchIncomingRequests();
+                await fetchExchangeHistory();
+                await fetchMyInventory();
+                await fetchSustainabilityMetrics();
+                if (user?.is_admin) {
+                    await fetchAdminDashboard();
+                }
+            }
+            setLoading(false);
+        };
+        loadDashboardData();
+    }, [user]);
 
     const handleUploadChange = (e) => {
         setUploadData({ ...uploadData, [e.target.name]: e.target.value });
@@ -299,7 +327,6 @@ const handleVerifyIndustry = async (id) => {
                     <p style={{ color: 'var(--text-muted)', margin: '5px 0 0 0' }}>Logged in: <strong>{user?.company_name}</strong> | Type: {user?.industry_type} | Region: {user?.district}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                    {/* Admin Mode Toggle[cite: 1] */}
                     {user?.is_admin && (
                         <button 
                             onClick={() => setIsAdminMode(!isAdminMode)} 
@@ -316,11 +343,11 @@ const handleVerifyIndustry = async (id) => {
             </div>
 
             {/* ==========================================================
-                VIEW CONDITIONAL 1: ADMIN CONTROL PORTAL PANEL[cite: 1]
+                VIEW CONDITIONAL 1: ADMIN CONTROL PORTAL PANEL
                ========================================================== */}
             {isAdminMode && user?.is_admin ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
-                    {/* Administrative Global Metrics Cards[cite: 1] */}
+                    {/* Administrative Global Metrics Cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
                         <div style={{ background: '#1e293b', padding: '20px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                             <span style={{ color: 'var(--text-muted)', fontSize: '12px', textTransform: 'uppercase' }}>Global Registered Facilities</span>
@@ -341,7 +368,7 @@ const handleVerifyIndustry = async (id) => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-                        {/* Column Left: Industry Registration Directory Audit[cite: 1] */}
+                        {/* Column Left: Industry Registration Directory Audit */}
                         <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                             <h3 style={{ margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}><Building size={20} color="var(--primary)" /> Registered Industrial Networks</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '400px', overflowY: 'auto' }}>
@@ -352,34 +379,34 @@ const handleVerifyIndustry = async (id) => {
                                             <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>Sector: {ind.industry_type} | {ind.district}</p>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-    {ind.is_verified ? (
-        <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', background: ind.is_admin ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', color: ind.is_admin ? '#ef4444' : '#10b981' }}>
-            {ind.is_admin ? "SYSTEM ADMIN" : "✓ VERIFIED"}
-        </span>
-    ) : (
-        <button 
-            onClick={() => handleVerifyIndustry(ind.id)}
-            style={{
-                backgroundColor: '#fbbf24',
-                color: '#0f172a',
-                border: 'none',
-                padding: '4px 12px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: '700',
-                cursor: 'pointer'
-            }}
-        >
-            Approve Hub
-        </button>
-    )}
-</div>
+                                            {ind.is_verified ? (
+                                                <span style={{ fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '6px', background: ind.is_admin ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', color: ind.is_admin ? '#ef4444' : '#10b981' }}>
+                                                    {ind.is_admin ? "SYSTEM ADMIN" : "✓ VERIFIED"}
+                                                </span>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => handleVerifyIndustry(ind.id)}
+                                                    style={{
+                                                        backgroundColor: '#fbbf24',
+                                                        color: '#0f172a',
+                                                        border: 'none',
+                                                        padding: '4px 12px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '700',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    Approve Hub
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Column Right: Global Listing Moderator[cite: 1] */}
+                        {/* Column Right: Global Listing Moderator */}
                         <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                             <h3 style={{ margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#fff' }}><Layers size={20} color="var(--primary)" /> Global Material Listing Audits</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '400px', overflowY: 'auto' }}>
@@ -442,7 +469,7 @@ const handleVerifyIndustry = async (id) => {
                             <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '12px', border: '1px solid var(--border)', height: 'fit-content' }}>
                                 <h2 style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '20px', marginBottom: '20px' }}>
                                     <PlusCircle color="var(--primary)" /> List Reusable By-Product
-                               </h2>
+                                </h2>
                                 <form onSubmit={handleUploadSubmit}>
                                     <div className="form-group">
                                         <label>Listing Title</label>
@@ -510,11 +537,63 @@ const handleVerifyIndustry = async (id) => {
 
                         {/* RIGHT PANEL: MATCHES VIEWPORT */}
                         <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-                                <h2 style={{ margin: 0, textAlign: 'left' }}>Automated Industry Matches</h2>
-                                <button onClick={fetchSmartMatches} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px' }}>
-                                    <RefreshCw size={16} /> Force Recalculation
-                                </button>
+                            {/* MODULE 3: INTERACTIVE SEARCH & FILTER BAR */}
+                            <div style={{ marginBottom: '25px', background: 'var(--bg-card)', padding: '20px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                                    <h2 style={{ margin: 0, textAlign: 'left', fontSize: '20px', color: '#fff' }}>
+                                        {isManualSearch ? "🔍 Custom Filter Results" : "✨ Automated Smart Matches"}
+                                    </h2>
+                                    {isManualSearch ? (
+                                        <button onClick={handleClearSearch} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}>
+                                            Clear Filters
+                                        </button>
+                                    ) : (
+                                        <button onClick={fetchSmartMatches} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                                            <RefreshCw size={14} /> Force Recalculation
+                                        </button>
+                                    )}
+                                </div>
+
+                                <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                    
+                                    {/* MODULE 3: DISTRICT DROPDOWN SELECTOR */}
+                                    <select 
+                                        value={searchDistrict}
+                                        onChange={(e) => setSearchDistrict(e.target.value)}
+                                        style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', background: 'var(--bg-dark)', border: '1px solid var(--border)', color: '#fff' }}
+                                    >
+                                        <option value="">All Districts (Kerala)</option>
+                                        <option value="Kottayam">Kottayam</option>
+                                        <option value="Ernakulam">Ernakulam</option>
+                                        <option value="Palakkad">Palakkad</option>
+                                        <option value="Thrissur">Thrissur</option>
+                                        <option value="Kozhikode">Kozhikode</option>
+                                        <option value="Alappuzha">Alappuzha</option>
+                                        <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                                        <option value="Malappuram">Malappuram</option>
+                                        <option value="Kannur">Kannur</option>
+                                        <option value="Kollam">Kollam</option>
+                                        <option value="Idukki">Idukki</option>
+                                        <option value="Wayanad">Wayanad</option>
+                                        <option value="Kasaragod">Kasaragod</option>
+                                        <option value="Pathanamthitta">Pathanamthitta</option>
+                                    </select>
+                                    
+                                    {/* Material Type Dropdown Selector */}
+                                    <select 
+                                        value={searchMaterialType}
+                                        onChange={(e) => setSearchMaterialType(e.target.value)}
+                                        style={{ padding: '8px 12px', borderRadius: '6px', background: 'var(--bg-dark)', border: '1px solid var(--border)', color: '#fff' }}
+                                    >
+                                        <option value="">All Material Types</option>
+                                        <option value="Wood Mills">Wood & Timber Waste</option>
+                                        <option value="Agro-Processing">Agro-Processing Residuals</option>
+                                        <option value="Textiles">Textile Fabric Scraps</option>
+                                        <option value="Construction">Construction Aggregates</option>
+                                    </select>
+                                    
+                                    <button type="submit" className="btn" style={{ width: 'auto', padding: '8px 16px' }}>Filter</button>
+                                </form>
                             </div>
 
                             {loading && <p style={{ color: 'var(--text-muted)' }}>Running calculations inside Python sub-engine...</p>}
@@ -522,7 +601,7 @@ const handleVerifyIndustry = async (id) => {
                             
                             {!loading && matches.length === 0 && (
                                 <p style={{ color: 'var(--text-muted)', background: 'var(--bg-card)', padding: '30px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                                    No industrial waste listings match your company profile requirements yet. Try listing an item on the left panel or switch profiles!
+                                    No industrial waste listings match your filters or requirement parameters. Try adjusting queries above.
                                 </p>
                             )}
 
@@ -531,7 +610,7 @@ const handleVerifyIndustry = async (id) => {
                                     <div key={listing.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '10px', padding: '25px', position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div style={{ flex: 1, paddingRight: '20px' }}>
                                             <div style={{ display: 'inline-flex', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--primary)', padding: '4px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '13px', alignItems: 'center', gap: '4px', marginBottom: '12px' }}>
-                                                <Percent size={14} /> {listing.match_score}% Match Score
+                                                <Percent size={14} /> {listing.match_score ? `${listing.match_score}% Match Score` : 'Filtered Match'}
                                             </div>
                                             <h3 style={{ margin: '0 0 8px 0', color: '#fff', fontSize: '20px' }}>{listing.title}</h3>
                                             <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: '0 0 15px 0' }}>{listing.description}</p>
