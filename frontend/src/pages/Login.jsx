@@ -32,9 +32,7 @@ const Login = () => {
         <div className="auth-container" style={{ padding: '40px 20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Elegant Floating Top Bar for Theme Toggle - Matches Register View Layout */}
-            <div style={{ width: '100%', maxWidth: '450px', display: 'flex', justifyContent: 'flex-end', boxSizing: 'border-box' }}>
-                <ThemeToggle />
-            </div>
+           
 
             <div className="auth-card" style={{ maxWidth: '450px', padding: '35px 40px' }}>
                 <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)', textAlign: 'left' }}>
@@ -85,6 +83,9 @@ const Login = () => {
                         New platform user? <Link to="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>Register Industry Account</Link>
                     </p>
                 </form>
+            </div>
+             <div style={{ width: '100%', maxWidth: '500px', display: 'flex', justifyContent: 'flex-end', boxSizing: 'border-box' }}>
+                <ThemeToggle />
             </div>
         </div>
     );

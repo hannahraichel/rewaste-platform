@@ -1,0 +1,194 @@
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+}
+
+/* Fullscreen professional white canvas with centered alignments */
+#intro-screen {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  background: #ffffff; /* Crisp white background */
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  font-family: Times New Roman, serif;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+/* Subtle high-end ambient light overlay */
+.scan-line {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.02);
+  animation: scan 8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+/* Centered minimal metadata line */
+.terminal-header {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  padding: 20px 2rem;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.terminal-title {
+  font-family:Times New Roman, serif;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Centered workspace configuration frame */
+.content-area {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 750px;
+  text-align: center; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Dynamic Elegant Black Text Glow Keyframes */
+@keyframes blackGlow {
+  0% {
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.08), 0 0 12px rgba(0, 0, 0, 0.03);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.22), 0 0 22px rgba(0, 0, 0, 0.12), 0 0 32px rgba(0, 0, 0, 0.04);
+  }
+  100% {
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.08), 0 0 12px rgba(0, 0, 0, 0.03);
+  }
+}
+
+.glowing-title {
+  color: #0f2f0acc;
+  font-size: 50px;
+  font-family: Times New Roman, serif;
+  margin: 0;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  animation: blackGlow 2s ease-in-out infinite;
+}
+
+.badge-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center; 
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+/* Minimalist Framework Badges with subtle clean fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.badge {
+  font-family: Times New Roman, serif;
+  font-size: 11px;
+  padding: 5px 14px;
+  border-radius: 0px; 
+  letter-spacing: 0.05em;
+  background: transparent; 
+  color: #000000; 
+  border: 1px solid rgba(0, 0, 0, 0.2); 
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* Staggered load pacing animation sets */
+.badge-1 { animation-delay: 0.2s; }
+.badge-2 { animation-delay: 0.4s; }
+.badge-3 { animation-delay: 0.6s; }
+
+.cta-row {
+  margin-top: 3.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  animation: fadeIn 0.8s ease forwards;
+  animation-delay: 0.9s;
+  opacity: 0;
+}
+
+/* Premium high-contrast professional buttons */
+.btn-enter {
+  font-family: Times New Roman, serif;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  padding: 12px 32px;
+  border-radius: 0px;
+  border: 1px solid #000000;
+  cursor: pointer;
+  background: #000000;
+  color: #ffffff;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.btn-enter:hover { 
+  background: #ffffff; 
+  color: #000000; 
+}
+
+.btn-skip {
+  font-family: Times New Roman, serif;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  padding: 12px 24px;
+  border-radius: 0px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: transparent;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-skip:hover { 
+  color: #000000; 
+  border-color: rgba(0, 0, 0, 0.6); 
+}
+
+.status-bar {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 3rem;
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.status-item { font-size: 11px; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.05em; }
+.status-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #000000; margin-right: 6px; animation: blink 1.5s ease-in-out infinite; }
+
+@keyframes blink { 50% { opacity: 0; } }
+
+.intro-wrapper {
+  transition: opacity 0.6s ease-in-out;
+}
+.intro-wrapper.fade-out {
+  opacity: 0;
+}

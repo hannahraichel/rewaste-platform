@@ -47,10 +47,7 @@ const Register = () => {
     return (
         <div className="auth-container" style={{ padding: '40px 20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* Elegant Floating Top Bar for Theme Toggle */}
-            <div style={{ width: '100%', maxWidth: '650px', display: 'flex', justifyContent: 'flex-end', boxSizing: 'border-box' }}>
-                <ThemeToggle />
-            </div>
+            
 
             <div className="auth-card" style={{ maxWidth: '650px', padding: '35px 40px' }}>
                 <h2 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)', textAlign: 'left' }}>
@@ -134,6 +131,10 @@ const Register = () => {
                         Already have an industry account? <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>Sign In Here</Link>
                     </p>
                 </form>
+            </div>
+            {/* Elegant Floating Top Bar for Theme Toggle */}
+            <div style={{ width: '100%', maxWidth: '700px', display: 'flex', justifyContent: 'flex-end', boxSizing: 'border-box' }}>
+                <ThemeToggle />
             </div>
         </div>
     );

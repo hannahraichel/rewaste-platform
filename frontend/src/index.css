@@ -1,46 +1,70 @@
 /* ==========================================================
-   DEFAULT LIGHT MODE COLOR PALETTE
+   REWASTE — DESIGN TOKENS
+   Light mode: warm off-white canvas, forest green, amber
+   Dark mode: deep green-black, bright green accents
+   ========================================================== */
+
+/* ==========================================================
+   LIGHT MODE (Default — Public pages, listings, search)
    ========================================================== */
 :root {
-  --bg-main: #f8fafc;        /* Soft off-white canvas slate */
-  --bg-card: #ffffff;        /* Crisp pure white element boxes */
-  --bg-dark: #ffffff;        /* Slightly darker grey for inputs to stand out */
-  --text-main: #0f172a;      /* Dark slate dominant lettering */
-  --text-muted: black;     /* Deep slate for clear secondary readability */
-  --border: #bac1ca;         /* Highly visible clean layout lines */
-  --primary: #136449;        /* Emerald Green circle economy brand accent */
-  --primary-dark: #085f43;   /* Hover states button focus color */
+  --bg-main:        #F5F7F2;   /* Warm off-white with green undertone */
+  --bg-card:        #FFFFFF;   /* Pure white card surfaces */
+  --bg-input:       #F0F4EE;   /* Slightly tinted input fields */
+  --text-main:      #111C17;   /* Near-black with green warmth */
+  --text-muted:     #4A5E54;   /* Muted forest tone for secondary text */
+  --border:         #E2E8E0;   /* Soft gray-green dividers */
+  --primary:        #1A3C2E;   /* Deep forest green — brand anchor */
+  --primary-dark:   #0F2A1E;   /* Hover / focus state */
+  --accent:         #D4A017;   /* Amber — raw material, economic value */
+  --accent-dark:    #B8880F;   /* Amber hover state */
+  --error-bg:       rgba(239, 68, 68, 0.08);
+  --error-text:     #dc2626;
+  --error-border:   rgba(239, 68, 68, 0.2);
 }
 
 /* ==========================================================
-   DARK MODE COLOR OVERRIDES (Triggered via data attribute)
+   DARK MODE (Dashboards, Admin panels, Analytics)
    ========================================================== */
 [data-theme='dark'] {
-  --bg-main: #101e40;        /* Deep midnight slate background */
-  --bg-card: #1c2f4e;        /* Slate card wrapper backgrounds */
-  --bg-dark: #0b0f19;        /* Dark solid sub-containers/inputs */
-  --text-main: #f8fafc;      /* Crisp off-white dominant lettering */
-  --text-muted: #94a3b8;     /* Soft slate metadata sub-text */
-  --border: #000000;         /* Muted layout partition grid borders */
-  --primary: #34b489;        /* Keeps consistent brand color markers */
-  --primary-dark: #047857;   /* Deep emerald dark theme button hover */
+  --bg-main:        #0F1A14;   /* Very dark green-black base */
+  --bg-card:        #1A2B20;   /* Dark card surface */
+  --bg-input:       #0F1A14;   /* Deep solid inputs */
+  --text-main:      #E8F0EA;   /* Soft white with green warmth */
+  --text-muted:     #7A9E87;   /* Muted sage for secondary text */
+  --border:         #2A3D30;   /* Subtle green-dark borders */
+  --primary:        #2ECC71;   /* Bright green — visible on dark bg */
+  --primary-dark:   #27AE60;   /* Hover state */
+  --accent:         #F0B429;   /* Warmer amber on dark */
+  --accent-dark:    #D4A017;   /* Amber hover */
+  --error-bg:       rgba(239, 68, 68, 0.12);
+  --error-text:     #f87171;
+  --error-border:   rgba(239, 68, 68, 0.25);
 }
 
-/* Consolidated global baseline element resets */
+/* ==========================================================
+   GLOBAL BASE RESETS
+   ========================================================== */
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ==========================================================
+   AUTH LAYOUT
+   ========================================================== */
 .auth-container {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center;      /* Vertically centers the card */
+  justify-content: center;   /* Horizontally centers the card */
   background-color: var(--bg-main);
+  padding: 20px;             /* Prevents the card from hitting screen edges on mobile */
+  box-sizing: border-box;    /* Ensures padding is included in the 100vh calculation */
 }
 
 .auth-card {
@@ -48,11 +72,27 @@ body {
   border: 1px solid var(--border);
   padding: 40px;
   border-radius: 12px;
+  
+  /* Width Adjustments */
   width: 100%;
   max-width: 450px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  
+  /* Height Adjustments */
+  height: auto;              /* Allows the card to grow naturally based on form content */
+  min-height: 300px;         /* Gives it a solid baseline height if content is sparse */
+  
+  /* Layout inside the card (Optional but recommended for form elements) */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  box-shadow: 0 4px 24px rgba(26, 60, 46, 0.08); 
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
+/* ==========================================================
+   FORM ELEMENTS
+   ========================================================== */
 .form-group {
   margin-bottom: 20px;
 }
@@ -61,57 +101,112 @@ h2 {
   color: var(--text-main);
   margin-top: 0;
   margin-bottom: 24px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
 }
 
 label {
   display: block;
   text-align: left;
   margin-bottom: 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-input, select {
+input,
+select {
   width: 100%;
   padding: 10px 12px;
-  border-radius: 6px;
-  background-color: var(--bg-dark);
+  border-radius: 8px;
+  background-color: var(--bg-input);
   border: 1px solid var(--border);
   color: var(--text-main);
   box-sizing: border-box;
   font-size: 14px;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  font-family: inherit;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input:focus, select:focus {
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+input:focus,
+select:focus {
   border-color: var(--primary);
-  background-color: var(--bg-card); /* Changes opacity color on focus to pop text out */
+  background-color: var(--bg-card);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 60, 46, 0.1); /* Soft green focus ring */
 }
 
+[data-theme='dark'] input:focus,
+[data-theme='dark'] select:focus {
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15); /* Bright green ring in dark mode */
+}
+
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
 .btn {
   background-color: var(--primary);
-  color: white;
+  color: #ffffff;
   border: none;
   width: 100%;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 14px;
+  font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  letter-spacing: 0.2px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .btn:hover {
   background-color: var(--primary-dark);
 }
 
+.btn:active {
+  transform: scale(0.99);
+}
+
+/* Accent / secondary button variant */
+.btn-accent {
+  background-color: var(--accent);
+  color: #111C17;
+}
+
+.btn-accent:hover {
+  background-color: var(--accent-dark);
+}
+
+/* Ghost / outline button variant */
+.btn-outline {
+  background-color: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+/* ==========================================================
+   ERROR MESSAGE
+   ========================================================== */
 .error-msg {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: var(--error-bg);
+  color: var(--error-text);
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  font-size: 14px;
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-size: 13px;
+  border: 1px solid var(--error-border);
+  line-height: 1.5;
 }
