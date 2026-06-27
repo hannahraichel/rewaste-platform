@@ -1,10 +1,12 @@
 import React, { useContext, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import IntroScreen from './pages/IntroScreen'; // Make sure the path matches your file location
+import IntroScreen from './pages/IntroScreen';
+import LandingPage from './pages/LandingPage';
 import './index.css';
 
 // A high-order wrapper component to protect our private route paths
@@ -34,12 +36,15 @@ function AppContent() {
   return (
     <Router>
       <Routes>
+        {/* Public Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* Public Authentication Flow Links */}
-        <Route path="/register" element={token ? <Navigate to="/" /> : <Register />} />
-        <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         
         {/* Private Dashboard Link */}
-        <Route path="/" element={
+        <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
@@ -51,9 +56,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

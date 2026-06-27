@@ -41,13 +41,13 @@ router.post('/register', async (req, res) => {
 });
 
 // ==========================================
-// 2. LOGIN INDUSTRIAL USER [cite: 28]
+// 2. LOGIN INDUSTRIAL USER
 // ==========================================
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // Check if industry user exists (SELECT * automatically pulls the new is_admin column)
+        // Check if industry user exists
         const userResult = await pool.query('SELECT * FROM industries WHERE email = $1', [email]);
         if (userResult.rows.length === 0) {
             return res.status(400).json({ error: "Invalid email or password credentials." });
@@ -61,7 +61,14 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ error: "Invalid email or password credentials." });
         }
 
-        // Generate JWT token
+        // NEW: Check if the account has been approved by the Admin
+        if (!user.is_verified) {
+            return res.status(403).json({ 
+                error: "Your account is currently awaiting admin verification. Access to the hub will be unlocked shortly." 
+            });
+        }
+
+        // Generate JWT token if both credentials match and user is verified
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
         // Don't return password_hash to frontend

@@ -4,29 +4,38 @@
   box-sizing: border-box; 
 }
 
-/* Fullscreen professional white canvas with centered alignments */
+/* Base structural canvas container */
 #intro-screen {
   position: relative;
   width: 100vw;
   min-height: 100vh;
-  background: #ffffff; /* Crisp white background */
   display: flex;
   flex-direction: column;
   align-items: center; 
   justify-content: center; 
-  font-family: Times New Roman, serif;
+  font-family: 'Inter', 'DM Sans', -apple-system, sans-serif;
   padding: 2rem;
   overflow: hidden;
+  background-color: #0A0A0A;
 }
 
-/* Subtle high-end ambient light overlay */
+/* Ensure Vanta's canvas element always sits below everything */
+#intro-screen canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* Scan line ambient light */
 .scan-line {
   position: absolute;
   width: 100%;
   height: 2px;
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.03); 
   animation: scan 8s linear infinite;
   pointer-events: none;
+  z-index: 3;
 }
 
 @keyframes scan {
@@ -34,7 +43,6 @@
   100% { top: 100%; }
 }
 
-/* Centered minimal metadata line */
 .terminal-header {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -42,51 +50,64 @@
   align-items: center;
   justify-content: center; 
   padding: 20px 2rem;
-  background: #ffffff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: transparent; 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 3;
 }
 
 .terminal-title {
-  font-family:Times New Roman, serif;
+  font-family: monospace;
   font-size: 11px;
-  color: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.5); 
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
-/* Centered workspace configuration frame */
+/* Elevated foreground workspace view layer */
 .content-area {
   position: relative;
-  z-index: 2;
+  z-index: 3; 
   width: 100%;
-  max-width: 750px;
+  max-width: 600px;
   text-align: center; 
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: rgba(22, 26, 30, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 48px 32px;
+  box-shadow: 12px 12px 24px #050607,
+              -12px -12px 24px #1d2125,
+              inset 3px 3px 6px rgba(255, 255, 255, 0.05),
+              inset -3px -3px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* Dynamic Elegant Black Text Glow Keyframes */
-@keyframes blackGlow {
-  0% {
-    text-shadow: 0 0 4px rgba(0, 0, 0, 0.08), 0 0 12px rgba(0, 0, 0, 0.03);
-  }
-  50% {
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.22), 0 0 22px rgba(0, 0, 0, 0.12), 0 0 32px rgba(0, 0, 0, 0.04);
-  }
-  100% {
-    text-shadow: 0 0 4px rgba(0, 0, 0, 0.08), 0 0 12px rgba(0, 0, 0, 0.03);
-  }
+@keyframes greenGlow {
+  0% { text-shadow: 0 0 4px rgba(16, 185, 129, 0.2); }
+  50% { text-shadow: 0 0 16px rgba(16, 185, 129, 0.6); }
+  100% { text-shadow: 0 0 4px rgba(16, 185, 129, 0.2); }
 }
 
 .glowing-title {
-  color: #0f2f0acc;
-  font-size: 50px;
-  font-family: Times New Roman, serif;
+  color: #FFFFFF;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   margin: 0;
-  font-weight: bold;
-  letter-spacing: 0.06em;
-  animation: blackGlow 2s ease-in-out infinite;
+  line-height: 1.2;
+  animation: greenGlow 3s ease-in-out infinite;
+}
+
+.intro-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  margin-top: 16px;
+  font-family: monospace;
+  letter-spacing: 0.05em;
 }
 
 .badge-row {
@@ -98,25 +119,23 @@
   width: 100%;
 }
 
-/* Minimalist Framework Badges with subtle clean fade-in */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .badge {
-  font-family: Times New Roman, serif;
+  font-family: monospace;
   font-size: 11px;
   padding: 5px 14px;
-  border-radius: 0px; 
+  border-radius: 4px; 
   letter-spacing: 0.05em;
-  background: transparent; 
-  color: #000000; 
-  border: 1px solid rgba(0, 0, 0, 0.2); 
+  background: rgba(255, 255, 255, 0.05); 
+  color: rgba(255, 255, 255, 0.85); 
+  border: 1px solid rgba(255, 255, 255, 0.15); 
   animation: fadeIn 0.8s ease forwards;
 }
 
-/* Staggered load pacing animation sets */
 .badge-1 { animation-delay: 0.2s; }
 .badge-2 { animation-delay: 0.4s; }
 .badge-3 { animation-delay: 0.6s; }
@@ -132,42 +151,50 @@
   opacity: 0;
 }
 
-/* Premium high-contrast professional buttons */
 .btn-enter {
-  font-family: Times New Roman, serif;
-  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
   letter-spacing: 0.05em;
   padding: 12px 32px;
-  border-radius: 0px;
-  border: 1px solid #000000;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  background: #000000;
-  color: #ffffff;
-  font-weight: bold;
-  transition: all 0.2s ease;
+  background: #FFFFFF;
+  color: #0A0A0A;
+  font-weight: 700;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), 
+              -4px -4px 8px rgba(255, 255, 255, 0.05), 
+              inset 2px 2px 4px rgba(255, 255, 255, 0.3), 
+              inset -2px -2px 4px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-enter:hover { 
-  background: #ffffff; 
-  color: #000000; 
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.35), 
+              -6px -6px 12px rgba(255, 255, 255, 0.08), 
+              inset 2px 2px 4px rgba(255, 255, 255, 0.35), 
+              inset -2px -2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .btn-skip {
-  font-family: Times New Roman, serif;
-  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
   letter-spacing: 0.05em;
   padding: 12px 24px;
-  border-radius: 0px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  background: transparent;
-  color: rgba(0, 0, 0, 0.45);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 18, 21, 0.4);
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 3px 3px 6px #050607, 
+              inset -3px -3px 6px rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-skip:hover { 
-  color: #000000; 
-  border-color: rgba(0, 0, 0, 0.6); 
+  color: #FFFFFF; 
+  border-color: #FFFFFF; 
 }
 
 .status-bar {
@@ -177,18 +204,43 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 3rem;
-  background: #ffffff;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: transparent; 
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 3;
 }
 
-.status-item { font-size: 11px; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.05em; }
-.status-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #000000; margin-right: 6px; animation: blink 1.5s ease-in-out infinite; }
+.status-item { 
+  font-family: monospace;
+  font-size: 11px; 
+  color: rgba(255, 255, 255, 0.5); 
+  letter-spacing: 0.05em; 
+}
+
+.status-dot { 
+  display: inline-block; 
+  width: 6px; 
+  height: 6px; 
+  border-radius: 50%; 
+  background: #10b981; 
+  margin-right: 8px; 
+  animation: blink 1.5s ease-in-out infinite; 
+}
 
 @keyframes blink { 50% { opacity: 0; } }
 
 .intro-wrapper {
-  transition: opacity 0.6s ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-color: #0A0A0A;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .intro-wrapper.fade-out {
   opacity: 0;
+  transform: scale(1.02);
+  pointer-events: none;
 }

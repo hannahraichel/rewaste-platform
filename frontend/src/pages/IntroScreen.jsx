@@ -1,8 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./IntroScreen.css";
 
 export default function IntroScreen({ onComplete }) {
   const [visible, setVisible] = useState(true);
+  const myRef = useRef(null);
+  const vantaInstanceRef = useRef(null);
+
+  useEffect(() => {
+    const loadScript = (src) => {
+      return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) {
+          resolve();
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    };
+
+    // Load Three.js r121 then the Vanta Net component module layout
+    loadScript("https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js")
+      .then(() => loadScript("https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"))
+      .then(() => {
+        if (!vantaInstanceRef.current && myRef.current && window.VANTA) {
+          vantaInstanceRef.current = window.VANTA.NET({
+            el: myRef.current,
+            mouseControls: true,
+  touchControls: true,
+  gyroControls: false,
+  minHeight: 200.00,
+  minWidth: 200.00,
+  scale: 1.00,
+  scaleMobile: 1.00,
+            color: 0x10b981,
+            backgroundColor: 0x0a0a0a,
+            points: 17.00,
+            maxDistance: 21.00,
+            spacing: 16.00,
+            showDots: false
+          });
+        }
+      })
+      .catch((err) => console.error("Error loading Vanta scripts:", err));
+
+    return () => {
+      if (vantaInstanceRef.current) {
+        vantaInstanceRef.current.destroy();
+        vantaInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   function handleEnter() {
     setVisible(false);
@@ -13,36 +63,29 @@ export default function IntroScreen({ onComplete }) {
 
   return (
     <div className={`intro-wrapper ${!visible ? "fade-out" : ""}`}>
-      
-      <div id="intro-screen">
+      <div id="intro-screen" ref={myRef}>
         <div className="scan-line"></div>
 
-        {/* Minimal Header */}
         <div className="terminal-header">
           <span className="terminal-title">ReWaste Workspace Engine // Production Mode</span>
         </div>
 
-        {/* Console Workspace */}
         <div className="content-area">
-          
-          {/* PROFESSIONAL GLOWING TEXT TITLE */}
           <div style={{ marginBottom: '40px' }}>
             <h2 className="glowing-title">
               WELCOME TO <br /> REWASTE NETWORK
             </h2>
-            <p style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: '13px', marginTop: '12px', margin: 0, fontFamily: 'Times New Roman, serif', letterSpacing: '0.05em' }}>
+            <p className="intro-subtitle">
               Secure Industrial Symbiosis Hub // Kerala Regional Ecosystem
             </p>
           </div>
 
-          {/* SDG Compliance Badges with pure structural CSS delay tracking tags */}
           <div className="badge-row">
             <div className="badge badge-1">SDG 9: INDUSTRY & INNOVATION</div>
             <div className="badge badge-2">SDG 12: RESPONSIBLE CONSUMPTION</div>
             <div className="badge badge-3">CIRCULAR ECONOMY SYMBIOSIS</div>
           </div>
 
-          {/* Action Navigation Entry Buttons */}
           <div className="cta-row">
             <button className="btn-enter" onClick={handleEnter}>
               ACCESS ENVIRONMENT
@@ -51,17 +94,14 @@ export default function IntroScreen({ onComplete }) {
               Skip Setup
             </button>
           </div>
-
         </div>
 
-        {/* Bottom Parameters Status Bar */}
         <div className="status-bar">
           <div className="status-item">
             <span className="status-dot"></span>WORKSPACE SECURED
           </div>
           <div className="status-item">REG: KERALA_IND</div>
         </div>
-
       </div>
     </div>
   );
