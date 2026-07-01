@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { Menu, X, ArrowRight, Layers, Cpu, Compass, Activity, ShieldCheck, HelpCircle } from 'lucide-react';
-import ecoFactory from '../assets/eco_factory.png';
+import ecoFactory from '../assets/landingpic.png';
 import recycleLoop from '../assets/recycle_loop.png';
 import circularEconomy from '../assets/circular_economy.png';
 
@@ -148,12 +148,12 @@ export default function LandingPage() {
         {/* Nav Links centered */}
         <div className="nav-links-desktop" style={{
           display: 'flex',
-          gap: '32px',
+          gap: '16px',
           alignItems: 'center'
         }}>
-          {['Marketplace', 'How It Works', 'Why ReWaste', 'Pricing', 'About'].map((link) => {
+          {['Marketplace', 'How It Works', 'Why ReWaste', 'About'].reduce((acc, link, idx, arr) => {
             const sectionId = link.toLowerCase().replace(/\s+/g, '-');
-            return (
+            const button = (
               <button
                 key={link}
                 onClick={() => scrollToSection(sectionId)}
@@ -175,26 +175,48 @@ export default function LandingPage() {
                 {link}
               </button>
             );
-          })}
+            
+            acc.push(button);
+            
+            if (idx < arr.length - 1) {
+              acc.push(
+                <span 
+                  key={`div-${idx}`} 
+                  style={{ 
+                    width: '1px', 
+                    height: '14px', 
+                    backgroundColor: '#1A7A4A', 
+                    opacity: 0.7, 
+                    margin: '0 8px' 
+                  }}
+                />
+              );
+            }
+            return acc;
+          }, [])}
+          
           {token && (
-            <Link
-              to="/dashboard"
-              style={{
-                textDecoration: 'none',
-                color: '#111111',
-                padding: '8px 0',
-                fontSize: '14px',
-                fontWeight: '500',
-                letterSpacing: '0.04em',
-                cursor: 'pointer',
-                position: 'relative',
-                fontFamily: 'inherit',
-                transition: 'color 0.2s ease'
-              }}
-              className="nav-link-btn"
-            >
-              Dashboard
-            </Link>
+            <>
+              <span style={{ width: '1px', height: '14px', backgroundColor: '#1A7A4A', opacity: 0.7, margin: '0 8px' }} />
+              <Link
+                to="/dashboard"
+                style={{
+                  textDecoration: 'none',
+                  color: '#111111',
+                  padding: '8px 0',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  letterSpacing: '0.04em',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  fontFamily: 'inherit',
+                  transition: 'color 0.2s ease'
+                }}
+                className="nav-link-btn"
+              >
+                Dashboard
+              </Link>
+            </>
           )}
         </div>
 
@@ -248,7 +270,7 @@ export default function LandingPage() {
           gap: '24px',
           paddingBottom: '100px'
         }}>
-          {['Marketplace', 'How It Works', 'Why ReWaste', 'Pricing', 'About'].map((link) => {
+          {['Marketplace', 'How It Works', 'Why ReWaste', 'About'].map((link) => {
             const sectionId = link.toLowerCase().replace(/\s+/g, '-');
             return (
               <button
@@ -472,9 +494,9 @@ export default function LandingPage() {
                   backgroundImage: `url(${slide})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  opacity: currentSlide === index ? 0.3 : 0,
+                  opacity: currentSlide === index ? 0.5 : 0,
                   transition: 'opacity 1.5s ease-in-out',
-                  zIndex: currentSlide === index ? 2 : 1
+                  zIndex: currentSlide === index ? 1 : 1
                 }}
               />
             ))}
@@ -552,64 +574,6 @@ export default function LandingPage() {
               >
                 Browse Listings
               </button>
-            </div>
-          </div>
-        </section>
-
-        {/* 2. TRUST BAR */}
-        <section style={{
-          height: 'auto',
-          minHeight: '80px',
-          borderBottom: '1px solid var(--gray-border)',
-          backgroundColor: 'var(--gray-light)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px 48px',
-        }}>
-          <div style={{
-            maxWidth: '1200px',
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '24px'
-          }}>
-            <span style={{
-              fontSize: '12px',
-              fontFamily: 'monospace',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: 'var(--gray-muted)',
-              fontWeight: '600'
-            }}>
-              // Trusted by 200+ manufacturers across 12 industries
-            </span>
-            
-            <div style={{
-              display: 'flex',
-              gap: '24px',
-              flexWrap: 'wrap',
-              alignItems: 'center'
-            }}>
-              {['CHEM_NODE_01', 'STEEL_NODE_04', 'TEX_NODE_12', 'PULP_NODE_09', 'GLASS_NODE_02'].map((node) => (
-                <span 
-                  key={node} 
-                  style={{
-                    fontFamily: 'monospace',
-                    fontSize: '12px',
-                    color: '#666666',
-                    fontWeight: '700',
-                    border: '1px solid #D5D5D5',
-                    padding: '3px 8px',
-                    backgroundColor: '#FFFFFF',
-                    letterSpacing: '0.05em'
-                  }}
-                >
-                  [{node}]
-                </span>
-              ))}
             </div>
           </div>
         </section>
@@ -1084,6 +1048,128 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* 6.5. ABOUT SECTION */}
+        <section id="about" style={{
+          padding: '96px 24px',
+          borderBottom: '1px solid var(--gray-border)',
+          backgroundColor: 'var(--white)'
+        }}>
+          <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto'
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '48px',
+              alignItems: 'start'
+            }}>
+              {/* Left Column: Title and SDG Badges */}
+              <div style={{ textAlign: 'left' }}>
+                <h2 style={{
+                  fontSize: '13px',
+                  fontFamily: 'monospace',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: '#1A7A4A',
+                  marginBottom: '20px'
+                }}>
+                  [ About ReWaste // Sustainable Development Goals ]
+                </h2>
+                <h3 style={{
+                  fontSize: '36px',
+                  fontWeight: '800',
+                  lineHeight: '1.2',
+                  letterSpacing: '-0.02em',
+                  color: 'var(--black)',
+                  marginBottom: '24px'
+                }}>
+                  Smart Symbiosis for a Circular Economy
+                </h3>
+                <p style={{
+                  fontSize: '15px',
+                  lineHeight: '1.6',
+                  color: '#444444',
+                  marginBottom: '32px'
+                }}>
+                  ReWaste addresses the coordination gap between waste-generating industries and raw material consumers. By treating industrial by-products as valuable economic resources, the platform fosters sustainable collaboration, mitigates landfill disposal costs, and optimizes resource utilization.
+                </p>
+
+                {/* SDG Badges */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{
+                    border: '1px solid #1A7A4A',
+                    padding: '16px',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(26, 122, 74, 0.03)'
+                  }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#1A7A4A', fontWeight: '700', display: 'block', marginBottom: '4px' }}>SDG 9 // INDUSTRY & INNOVATION</span>
+                    <span style={{ fontSize: '13px', color: '#333333', lineHeight: '1.4' }}>Promoting innovative industrial collaboration and digital waste-sharing infrastructure.</span>
+                  </div>
+                  <div style={{
+                    border: '1px solid #1A7A4A',
+                    padding: '16px',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(26, 122, 74, 0.03)'
+                  }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#1A7A4A', fontWeight: '700', display: 'block', marginBottom: '4px' }}>SDG 12 // RESPONSIBLE CONSUMPTION</span>
+                    <span style={{ fontSize: '13px', color: '#333333', lineHeight: '1.4' }}>Encouraging waste reduction, circular recycling loops, and active resource conservation.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Platform Architecture & Modules */}
+              <div style={{ textAlign: 'left' }}>
+                <h4 style={{
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  textTransform: 'uppercase',
+                  color: 'var(--black)',
+                  letterSpacing: '0.05em',
+                  marginBottom: '24px',
+                  borderBottom: '2px solid #1A7A4A',
+                  paddingBottom: '8px'
+                }}>
+                  // Technical Core Modules
+                </h4>
+
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '20px'
+                }}>
+                  {[
+                    { title: "Smart Matching", desc: "A rule-based matching engine that analyzes chemical keywords and industrial inputs to recommend exchanges without expensive third-party APIs." },
+                    { title: "Ecosystem Directory", desc: "Enables advanced search and location-based filtering using district/state parameters to pair nearby producers with raw material consumers." },
+                    { title: "Exchange Manifests", desc: "Allows industries to send exchange requests, coordinate approvals, and maintain immutable records of concluded waste transfers." },
+                    { title: "Sustainability Analytics", desc: "An integrated ESG dashboard showing carbon displacement, diverted landfill tons, and circular economy metrics." }
+                  ].map((module, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '16px' }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: '14px', color: '#1A7A4A', fontWeight: '700' }}>[0{idx + 1}]</span>
+                      <div>
+                        <h5 style={{ fontSize: '14px', fontWeight: '700', margin: '0 0 4px 0', color: 'var(--black)' }}>{module.title}</h5>
+                        <p style={{ fontSize: '13px', color: '#666666', margin: 0, lineHeight: '1.5' }}>{module.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tech Stack */}
+                <div style={{
+                  marginTop: '40px',
+                  padding: '16px',
+                  border: '1px solid var(--gray-border)',
+                  backgroundColor: 'var(--gray-light)',
+                  borderRadius: '4px'
+                }}>
+                  <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--gray-muted)', display: 'block', marginBottom: '8px' }}>DEPLOYED STACK // STABLE NODE</span>
+                  <span style={{ fontSize: '13px', fontFamily: 'monospace', color: 'var(--black)', fontWeight: '600' }}>React.js &middot; Node.js / Express &middot; PostgreSQL &middot; Python</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 7. CTA BANNER */}
         <section style={{
           backgroundColor: 'var(--primary-dark)',
@@ -1174,7 +1260,7 @@ export default function LandingPage() {
                 <li><button onClick={() => scrollToSection('marketplace')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>Live Marketplace</button></li>
                 <li><button onClick={() => scrollToSection('how-it-works')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>How it Works</button></li>
                 <li><button onClick={() => scrollToSection('why-rewaste')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>Why ReWaste</button></li>
-                <li><a href="#" onClick={(e) => e.preventDefault()} style={{ color: 'inherit', textDecoration: 'none' }}>Operational Pricing</a></li>
+                <li><button onClick={() => scrollToSection('about')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>About ReWaste</button></li>
               </ul>
             </div>
 
@@ -1182,7 +1268,7 @@ export default function LandingPage() {
             <div style={{ textAlign: 'left' }}>
               <span style={{ color: 'var(--black)', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', fontFamily: 'monospace', display: 'block', marginBottom: '16px' }}>Company</span>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <li><a href="#" onClick={(e) => e.preventDefault()} style={{ color: 'inherit', textDecoration: 'none' }}>About ReWaste</a></li>
+                <li><button onClick={() => scrollToSection('about')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>SDG Alignment</button></li>
                 <li><a href="#" onClick={(e) => e.preventDefault()} style={{ color: 'inherit', textDecoration: 'none' }}>Press Archives</a></li>
                 <li><a href="#" onClick={(e) => e.preventDefault()} style={{ color: 'inherit', textDecoration: 'none' }}>Developer APIs</a></li>
                 <li><a href="#" onClick={(e) => e.preventDefault()} style={{ color: 'inherit', textDecoration: 'none' }}>Security Node</a></li>

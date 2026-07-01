@@ -113,6 +113,12 @@ router.put('/status/:id', authMiddleware, async (req, res) => {
                 'UPDATE waste_listings SET is_available = FALSE WHERE id = $1',
                 [requestCheck.rows[0].listing_id]
             );
+        } else if (status === 'rejected' && requestCheck.rows[0].status === 'approved') {
+            // Re-enable the listing availability if an approved transaction is cancelled
+            await pool.query(
+                'UPDATE waste_listings SET is_available = TRUE WHERE id = $1',
+                [requestCheck.rows[0].listing_id]
+            );
         }
 
         res.json({
@@ -182,6 +188,10 @@ router.post('/message/:id', authMiddleware, async (req, res) => {
             return res.status(401).json({ error: "Unauthorized access to this communication thread." });
         }
 
+        if (tx.status === 'rejected') {
+            return res.status(403).json({ error: "This transaction has been cancelled. Communication is closed." });
+        }
+
         // Fetch sender's company name to attach to the text bubble
         const nameRes = await pool.query('SELECT company_name FROM industries WHERE id = $1', [sender_id]);
         const senderName = nameRes.rows[0].company_name;
@@ -216,7 +226,7 @@ router.get('/analytics/sustainability', authMiddleware, async (req, res) => {
     try {
         // Query all approved transactions where this user was either the buyer or the seller
         const metricsQuery = await pool.query(
-            `SELECT er.quantity, wl.material_type 
+            `SELECT wl.quantity, wl.material_type 
              FROM exchange_requests er
              JOIN waste_listings wl ON er.listing_id = wl.id
              WHERE er.status = 'approved' AND (er.buyer_id = $1 OR wl.generator_id = $1)`,

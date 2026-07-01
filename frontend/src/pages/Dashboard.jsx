@@ -112,24 +112,58 @@ const LogisticsChatDrawer = ({ h, currentUser, isOpen, onClose }) => {
                         );
                     })
                 )}
+                {h.status === 'rejected' && (
+                    <div style={{
+                        backgroundColor: 'var(--red-light, #fee2e2)',
+                        border: '1px solid var(--red-border, #fca5a5)',
+                        borderRadius: '12px',
+                        padding: '12px 16px',
+                        color: 'var(--red-text, #b91c1c)',
+                        fontSize: '12px',
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        textAlign: 'center',
+                        lineHeight: '1.4',
+                        marginTop: '8px'
+                    }}>
+                        ✕ Deal Cancelled. Communication is locked.
+                    </div>
+                )}
             </div>
 
             {/* Chat Input Footbar */}
-            <form onSubmit={sendThreadMsg} style={{ padding: '20px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', gap: '8px' }}>
-                <input 
-                    type="text" 
-                    value={typedMsg} 
-                    onChange={(e) => setTypedMsg(e.target.value)} 
-                    placeholder="Type a message..." 
-                    className="clay-input"
-                    style={{ 
-                        flex: 1, 
-                        height: '46px',
-                        fontSize: '12px',
-                    }} 
-                />
-                <button type="submit" className="clay-btn-primary" style={{ width: 'auto', padding: '0 24px', fontSize: '11px', cursor: 'pointer' }}>SEND</button>
-            </form>
+            {h.status === 'rejected' ? (
+                <div style={{ 
+                    padding: '24px', 
+                    borderTop: '1px solid rgba(255, 255, 255, 0.1)', 
+                    textAlign: 'center', 
+                    fontSize: '11px', 
+                    color: 'var(--gray-400)', 
+                    fontWeight: '700', 
+                    textTransform: 'uppercase', 
+                    fontFamily: 'var(--font-mono)',
+                    letterSpacing: '0.1em'
+                }}>
+                    🔒 Chat Thread Locked
+                </div>
+            ) : (
+                <form onSubmit={sendThreadMsg} style={{ padding: '20px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', gap: '8px' }}>
+                    <input 
+                        type="text" 
+                        value={typedMsg} 
+                        onChange={(e) => setTypedMsg(e.target.value)} 
+                        placeholder="Type a message..." 
+                        className="clay-input"
+                        style={{ 
+                            flex: 1, 
+                            height: '46px',
+                            fontSize: '12px',
+                        }} 
+                    />
+                    <button type="submit" className="clay-btn-primary" style={{ width: 'auto', padding: '0 24px', fontSize: '11px', cursor: 'pointer' }}>SEND</button>
+                </form>
+            )}
         </div>
     );
 };
@@ -150,7 +184,7 @@ const Dashboard = () => {
     
     const [activeTab, setActiveTab] = useState('hub'); 
     const [ecoData, setEcoData] = useState({ total_listings_closed: 0, total_tons_diverted: 0, co2_saved_kg: 0 });
-    const [isAdminMode, setIsAdminMode] = useState(false);
+    const [isAdminMode, setIsAdminMode] = useState(user?.email === 'admin@rewaste.com'); 
     const [adminData, setAdminData] = useState({ industries: [], listings: [], summary: {} });
 
     const [searchDistrict, setSearchDistrict] = useState('');
@@ -213,7 +247,7 @@ const Dashboard = () => {
 
     const fetchMyInventory = async () => {
         try {
-            const res = await axios.get('/api/waste/my-listings');
+            const res = await axios.get('/api/waste/my-inventory');
             setMyInventory(res.data);
         } catch (err) {
             console.error("Failed to fetch my inventory.");
@@ -240,7 +274,7 @@ const Dashboard = () => {
 
     const fetchSustainabilityMetrics = async () => {
         try {
-            const res = await axios.get('/api/exchange/sustainability-metrics');
+            const res = await axios.get('/api/exchange/analytics/sustainability');
             setEcoData(res.data);
         } catch (err) {
             console.error("Failed to resolve ESG metrics.");
@@ -249,7 +283,7 @@ const Dashboard = () => {
 
     const fetchAdminDashboard = async () => {
         try {
-            const res = await axios.get('/api/admin/dashboard-stats');
+            const res = await axios.get('/api/admin/dashboard');
             setAdminData(res.data);
         } catch (err) {
             console.error("Failed to resolve admin stats.");
@@ -258,6 +292,11 @@ const Dashboard = () => {
 
     useEffect(() => {
         const loadDashboardData = async () => {
+            // Check identity bounds immediately during data synchronization loop
+            if (user?.email === 'admin@rewaste.com') {
+                setIsAdminMode(true);
+            }
+            
             await fetchSmartMatches();
             await fetchMyInventory();
             await fetchIncomingRequests();
@@ -311,10 +350,26 @@ const Dashboard = () => {
             showToast(res.data.message);
             fetchSmartMatches();
             fetchIncomingRequests();
-            fetchExchangeHistory();
             fetchMyInventory();
             await fetchSustainabilityMetrics();
             if (user?.is_admin) await fetchAdminDashboard();
+
+            // Fetch the updated history array and update state
+            const historyRes = await axios.get('/api/exchange/history');
+            setHistory(historyRes.data);
+
+            // Automatically transition the user into the chat room upon approval
+            if (targetStatus === 'approved') {
+                const approvedDeal = historyRes.data.find(d => d.id === requestId);
+                if (approvedDeal) {
+                    openChatBotDrawer(approvedDeal);
+                }
+            } else if (targetStatus === 'rejected') {
+                if (selectedChatDeal && selectedChatDeal.id === requestId) {
+                    const cancelledDeal = historyRes.data.find(d => d.id === requestId);
+                    setSelectedChatDeal(cancelledDeal || null);
+                }
+            }
         } catch (err) {
             showToast(err.response?.data?.error || "Failed to update transaction status.", "error");
         }
@@ -322,7 +377,7 @@ const Dashboard = () => {
 
     const handleVerifyIndustry = async (industryId) => {
         try {
-            const res = await axios.put(`/api/admin/verify/${industryId}`);
+            const res = await axios.patch(`/api/admin/verify-industry/${industryId}`);
             showToast(res.data.message);
             if (user?.is_admin) await fetchAdminDashboard();
         } catch (err) {
@@ -437,7 +492,8 @@ const Dashboard = () => {
 
                 {/* Actions right */}
                 <div style={{ display: 'flex', gap: '12px' }}>
-                    {user?.is_admin && (
+                    {/* Only show toggle control if the logged in user is NOT the master admin profile */}
+                    {user?.is_admin && user?.email !== 'admin@rewaste.com' && (
                         <button 
                             onClick={() => {
                                 setIsAdminMode(!isAdminMode);
@@ -470,7 +526,8 @@ const Dashboard = () => {
             </header>
 
             {/* 2. NAV TABS */}
-            {!isAdminMode && (
+            {/* Guarantee workspace tabs stay locked hidden if admin@rewaste.com is authenticated */}
+            {!isAdminMode && user?.email !== 'admin@rewaste.com' && (
                 <div style={{
                     display: 'flex',
                     justifyContent: 'center',
@@ -780,7 +837,7 @@ const Dashboard = () => {
                                      ))}
                                  </div>
                              </div>
-                        </div>
+                         </div>
                     </div>
                 ) : (
                     /* ==========================================================
@@ -855,49 +912,22 @@ const Dashboard = () => {
                                                 No compatible listings found.
                                             </div>
                                         ) : (
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '550px', overflowY: 'auto', paddingRight: '4px' }}>
                                                 {getSortedMatches().map((listing) => (
-                                                    <div 
-                                                        key={listing.id} 
-                                                        className="clay-card"
-                                                        style={{ 
-                                                            padding: '24px', 
-                                                            display: 'flex', 
-                                                            flexDirection: 'column', 
-                                                            gap: '14px', 
-                                                            textAlign: 'left' 
-                                                        }}
-                                                    >
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px' }}>
-                                                                <div>
-                                                                    <h4 style={{ margin: '0 0 6px 0', color: 'var(--black)', fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700', lineHeight: '1.2' }}>
-                                                                        {listing.title}
-                                                                    </h4>
-                                                                    <span className="clay-inset" style={{ display: 'inline-block', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--black)', padding: '4px 10px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.05em' }}>
-                                                                        {listing.match_score ? `${listing.match_score}% Match` : 'Manual Listing'}
-                                                                    </span>
-                                                                </div>
-                                                                <button 
-                                                                    onClick={() => handleRequestExchange(listing.id)} 
-                                                                    className="clay-btn-secondary"
-                                                                    style={{ 
-                                                                        padding: '10px 18px', 
-                                                                        fontSize: '11px', 
-                                                                        letterSpacing: '0.08em', 
-                                                                        cursor: 'pointer',
-                                                                        whiteSpace: 'nowrap'
-                                                                    }}
-                                                                >
-                                                                    REQUEST TRADE
-                                                                </button>
+                                                    <div key={listing.id} className="clay-card" style={{ border: '1px solid var(--clay-input-border)', borderRadius: '12px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <div style={{ flex: 1, paddingRight: '16px', textAlign: 'left' }}>
+                                                            <div style={{ display: 'inline-flex', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold', fontSize: '11px', marginBottom: '8px' }}>
+                                                                <Percent size={12} /> {listing.match_score ? `${listing.match_score}% Match Ranking` : 'Manual Search Hit'}
                                                             </div>
-                                                            <p style={{ color: 'var(--gray-700)', fontSize: '13px', margin: 0, lineHeight: '1.6' }}>{listing.description}</p>
-                                                            
-                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', fontSize: '11px', color: 'var(--gray-400)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '700', borderTop: '1px dashed var(--gray-200)', paddingTop: '12px' }}>
-                                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Layers size={12} /> QUANTITY: <span style={{ color: 'var(--black)' }}>{listing.quantity} {listing.unit.toUpperCase()}</span></span>
-                                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={12} /> FACILITY: <span style={{ color: 'var(--black)' }}>{listing.company_name} ({listing.district})</span></span>
+                                                            <h4 style={{ margin: '0 0 6px 0', color: 'var(--text-main)', fontSize: '18px', fontWeight: '600' }}>{listing.title}</h4>
+                                                            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: '0 0 12px 0', lineHeight: '1.4' }}>{listing.description}</p>
+                                                            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Layers size={14} color="var(--primary)" /> Supply: <strong style={{ color: 'var(--text-main)' }}>{listing.quantity} {listing.unit.toUpperCase()}</strong></span>
+                                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} color="var(--primary)" /> Node: {listing.company_name} ({listing.district})</span>
                                                             </div>
                                                         </div>
+                                                        <button onClick={() => handleRequestExchange(listing.id)} className="clay-btn-primary" style={{ width: 'auto', padding: '10px 16px', whiteSpace: 'nowrap', fontSize: '13px' }}>REQUEST TRADE</button>
+                                                    </div>
                                                 ))}
                                             </div>
                                         )}
@@ -1046,70 +1076,109 @@ const Dashboard = () => {
                             </div>
                         )}
 
-                        {/* SUB-TAB 2: MATERIAL UPLOAD FORM */}
+                        {/* TEXT FORM WRAPPER SUBTAB REGISTER FOR WORKSPACE */}
                         {activeTab === 'upload' && (
-                            <div className="clay-card" style={{ padding: '40px', maxWidth: '650px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
-                                <h2 style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '20px', fontWeight: '800', fontFamily: 'var(--font-display)', textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '32px', color: 'var(--black)', borderBottom: '1px solid var(--gray-200)', paddingBottom: '14px' }}>
-                                    <PlusCircle size={20} /> REGISTER STOCK
-                                </h2>
-                                <form onSubmit={handleUploadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Title</label>
-                                        <input type="text" name="title" required onChange={handleUploadChange} value={uploadData.title} placeholder="E.G. METALLIC PACKAGING RESIDUES" className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
-                                    </div>
-                                    <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Material Category</label>
-                                        <select name="material_type" onChange={handleUploadChange} value={uploadData.material_type} className="clay-input" style={{ width: '100%', cursor: 'pointer', fontWeight: '500' }}>
-                                            <option value="Wood Mills">Wood Residue</option>
-                                            <option value="Agro-Processing">Agro Residuals</option>
-                                            <option value="Textiles">Textile Scraps</option>
-                                            <option value="Construction">Construction Waste</option>
-                                        </select>
-                                    </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            <div className="dashboard-content-grid">
+                                {/* Left column: Form */}
+                                <div className="clay-card" style={{ padding: '40px', boxSizing: 'border-box' }}>
+                                    <h2 style={{ textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '20px', fontWeight: '800', fontFamily: 'var(--font-display)', textTransform: 'uppercase', letterSpacing: '-0.01em', marginBottom: '32px', color: 'var(--black)', borderBottom: '1px solid var(--gray-200)', paddingBottom: '14px' }}>
+                                        <PlusCircle size={20} /> REGISTER STOCK
+                                    </h2>
+                                    <form onSubmit={handleUploadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                         <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quantity</label>
-                                            <input type="number" step="any" name="quantity" required onChange={handleUploadChange} value={uploadData.quantity} className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
+                                            <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Title</label>
+                                            <input type="text" name="title" required onChange={handleUploadChange} value={uploadData.title} placeholder="E.G. METALLIC PACKAGING RESIDUES" className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
                                         </div>
                                         <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit</label>
-                                            <select name="unit" onChange={handleUploadChange} value={uploadData.unit} className="clay-input" style={{ width: '100%', cursor: 'pointer', fontWeight: '500' }}>
-                                                <option value="tons">Tons</option>
-                                                <option value="kg">Kilograms (kg)</option>
-                                                <option value="liters">Liters</option>
+                                            <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Material Category</label>
+                                            <select name="material_type" onChange={handleUploadChange} value={uploadData.material_type} className="clay-input" style={{ width: '100%', cursor: 'pointer', fontWeight: '500' }}>
+                                                <option value="Wood Mills">Wood Residue</option>
+                                                <option value="Agro-Processing">Agro Residuals</option>
+                                                <option value="Textiles">Textile Scraps</option>
+                                                <option value="Construction">Construction Waste</option>
                                             </select>
                                         </div>
-                                    </div>
-                                    <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</label>
-                                        <input type="text" name="description" required onChange={handleUploadChange} value={uploadData.description} placeholder="Provide material description..." className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
-                                    </div>
-                                    <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Keywords</label>
-                                        <input type="text" name="keywords" required onChange={handleUploadChange} value={uploadData.keywords} placeholder="organic, scrap, wood" className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
-                                    </div>
-                                    <button 
-                                        type="submit" 
-                                        className="clay-btn-primary"
-                                        style={{ 
-                                            marginTop: '16px', 
-                                            padding: '14px', 
-                                            fontSize: '11px', 
-                                            letterSpacing: '0.12em', 
-                                            cursor: 'pointer',
-                                        }}
-                                    >
-                                        REGISTER STOCK
-                                    </button>
-                                </form>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                            <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quantity</label>
+                                                <input type="number" step="any" name="quantity" required onChange={handleUploadChange} value={uploadData.quantity} className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
+                                            </div>
+                                            <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit</label>
+                                                <select name="unit" onChange={handleUploadChange} value={uploadData.unit} className="clay-input" style={{ width: '100%', cursor: 'pointer', fontWeight: '500' }}>
+                                                    <option value="tons">Tons</option>
+                                                    <option value="kg">Kilograms (kg)</option>
+                                                    <option value="liters">Liters</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Description</label>
+                                            <input type="text" name="description" required onChange={handleUploadChange} value={uploadData.description} placeholder="Provide material description..." className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
+                                        </div>
+                                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            <label style={{ fontSize: '10px', color: 'var(--black)', fontFamily: 'var(--font-mono)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Keywords</label>
+                                            <input type="text" name="keywords" required onChange={handleUploadChange} value={uploadData.keywords} placeholder="organic, scrap, wood" className="clay-input" style={{ width: '100%', boxSizing: 'border-box' }} />
+                                        </div>
+                                        <button 
+                                            type="submit" 
+                                            className="clay-btn-primary"
+                                            style={{ 
+                                                marginTop: '16px', 
+                                                padding: '14px', 
+                                                fontSize: '11px', 
+                                                letterSpacing: '0.12em', 
+                                                cursor: 'pointer',
+                                            }}
+                                        >
+                                            REGISTER STOCK
+                                        </button>
+                                    </form>
+                                </div>
+
+                                {/* Right column: My Inventory list */}
+                                <div className="clay-card" style={{ padding: '24px' }}>
+                                    <h3 style={{ margin: '0 0 16px 0', fontFamily: 'var(--font-mono)', fontSize: '11px', textAlign: 'left', color: 'var(--black)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid var(--gray-200)', paddingBottom: '10px' }}>
+                                        MY INVENTORY
+                                        <span className="clay-inset" style={{ color: 'var(--black)', fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '4px 10px', marginLeft: '8px', fontWeight: '700' }}>{myInventory.length}</span>
+                                    </h3>
+                                    
+                                    {myInventory.length === 0 ? (
+                                        <div style={{ padding: '16px 0', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray-400)', textAlign: 'left' }}>
+                                            No inventory registered.
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            {myInventory.map((item) => (
+                                                <div key={item.id} className="clay-row" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div style={{ textAlign: 'left', flex: 1, marginRight: '12px' }}>
+                                                        <h4 style={{ margin: 0, color: 'var(--black)', fontSize: '13px', fontWeight: '600' }}>{item.title}</h4>
+                                                        <p style={{ margin: '4px 0 0 0', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray-400)', fontWeight: '700' }}>
+                                                            Quantity: {item.quantity} {item.unit.toUpperCase()}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        {item.is_available ? (
+                                                            <span className="clay-inset" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', fontWeight: '700', padding: '4px 10px', color: 'var(--status-green)' }}>
+                                                                READY
+                                                            </span>
+                                                        ) : (
+                                                            <span className="clay-inset" style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', fontWeight: '700', padding: '4px 10px', color: 'var(--gray-400)' }}>
+                                                                DONE
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
-                        {/* SUB-TAB 3: TRADE ORDERS DIRECTORY */}
+                        {/* TRADE ORDERS LOGISTICS DIRECTORY LIST OVERVIEW */}
                         {activeTab === 'inquiries' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                                
-                                {/* INBOUND PROPOSALS LEDGER */}
                                 <div className="clay-card" style={{ padding: '24px 32px' }}>
                                     <h3 style={{ textAlign: 'left', marginBottom: '24px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--black)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid var(--gray-200)', paddingBottom: '12px' }}>
                                         RECEIVED REQUESTS
@@ -1141,7 +1210,7 @@ const Dashboard = () => {
                                                                 className="clay-btn-primary"
                                                                 style={{ padding: '8px 16px', fontSize: '11px', letterSpacing: '0.08em', cursor: 'pointer' }}
                                                             >
-                                                                ACCEPT
+                                                                APPROVE
                                                             </button>
                                                             <button 
                                                                 onClick={() => handleUpdateStatus(req.id, 'rejected')} 
@@ -1158,7 +1227,6 @@ const Dashboard = () => {
                                     )}
                                 </div>
 
-                                {/* IMMUTABLE SETTLED DEALS ARCHIVE */}
                                 <div className="clay-card" style={{ padding: '24px 32px' }}>
                                     <h3 style={{ textAlign: 'left', marginBottom: '24px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--black)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.12em', borderBottom: '1px solid var(--gray-200)', paddingBottom: '12px' }}>
                                         TRADE HISTORY
@@ -1181,13 +1249,24 @@ const Dashboard = () => {
                                                             <h4 style={{ margin: '8px 0 4px 0', color: 'var(--black)', fontSize: '15px', fontWeight: '600' }}>{h.material_title}</h4>
                                                             <p style={{ margin: 0, fontSize: '12px', color: 'var(--gray-700)' }}>Partner: {partnerName}</p>
                                                         </div>
-                                                        <button 
-                                                            onClick={() => openChatBotDrawer(h)} 
-                                                            className="clay-btn-secondary"
-                                                            style={{ width: 'auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', letterSpacing: '0.08em', cursor: 'pointer' }}
-                                                        >
-                                                            <MessageSquare size={13} /> OPEN CHAT
-                                                        </button>
+                                                        <div style={{ display: 'flex', gap: '12px' }}>
+                                                            <button 
+                                                                onClick={() => openChatBotDrawer(h)} 
+                                                                className="clay-btn-secondary"
+                                                                style={{ width: 'auto', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', letterSpacing: '0.08em', cursor: 'pointer' }}
+                                                            >
+                                                                <MessageSquare size={13} /> OPEN CHAT
+                                                            </button>
+                                                            {h.status === 'approved' && user.company_name === h.seller_name && (
+                                                                <button 
+                                                                    onClick={() => handleUpdateStatus(h.id, 'rejected')} 
+                                                                    className="clay-btn-primary"
+                                                                    style={{ width: 'auto', padding: '10px 16px', fontSize: '11px', letterSpacing: '0.08em', cursor: 'pointer', backgroundColor: '#ef4444' }}
+                                                                >
+                                                                    CANCEL DEAL
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 );
                                             })}

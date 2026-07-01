@@ -55,18 +55,19 @@ router.get('/all', async (req, res) => {
 // ==========================================
 // 3. SEARCH & FILTER WASTE (By District/Material Type)
 // ==========================================
-router.get('/search', async (req, res) => {
+router.get('/search', authMiddleware, async (req, res) => {
     // Expect query parameters like /api/waste/search?district=Ernakulam&material_type=Wood Mills
     const { district, material_type } = req.query;
+    const current_user_id = req.user.id;
 
     try {
         let queryText = `
             SELECT wl.*, i.company_name, i.district, i.state 
             FROM waste_listings wl
             JOIN industries i ON wl.generator_id = i.id
-            WHERE wl.is_available = TRUE
+            WHERE wl.is_available = TRUE AND wl.generator_id != $1
         `;
-        const queryParams = [];
+        const queryParams = [current_user_id];
 
         // Dynamically add filters if the frontend requests them
         if (district) {

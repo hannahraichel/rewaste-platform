@@ -30,10 +30,7 @@ router.post('/register', async (req, res) => {
             [company_name, email, password_hash, industry_type, district, state, raw_material_keywords || []] // [cite: 11]
         );
 
-        // Generate a 24-hour JWT token
-        const token = jwt.sign({ id: newUser.rows[0].id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-
-        res.status(201).json({ token, user: newUser.rows[0] });
+        res.status(201).json({ success: true, message: "Registration successful. Your account is currently awaiting admin verification." });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: "Registration failed on server." });

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
-import greenAuthBg from '../assets/cute-leaves.jpg';
+import greenAuthBg from '../assets/greenish.jpg';
 
 const Login = () => {
     const { login } = useContext(AuthContext);

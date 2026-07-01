@@ -16,7 +16,7 @@
   font-family: 'Inter', 'DM Sans', -apple-system, sans-serif;
   padding: 2rem;
   overflow: hidden;
-  background-color: #0A0A0A;
+  background-color: #f9fafb;
 }
 
 /* Ensure Vanta's canvas element always sits below everything */
@@ -32,7 +32,7 @@
   position: absolute;
   width: 100%;
   height: 2px;
-  background: rgba(255, 255, 255, 0.03); 
+  background: rgba(0, 0, 0, 0.015); 
   animation: scan 8s linear infinite;
   pointer-events: none;
   z-index: 3;
@@ -51,14 +51,14 @@
   justify-content: center; 
   padding: 20px 2rem;
   background: transparent; 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   z-index: 3;
 }
 
 .terminal-title {
   font-family: monospace;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5); 
+  color: rgba(0, 0, 0, 0.4); 
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -73,26 +73,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(22, 26, 30, 0.75);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 28px;
   padding: 48px 32px;
-  box-shadow: 12px 12px 24px #050607,
-              -12px -12px 24px #1d2125,
-              inset 3px 3px 6px rgba(255, 255, 255, 0.05),
-              inset -3px -3px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 12px 12px 24px #d5e3db,
+              -12px -12px 24px #ffffff,
+              inset 4px 4px 8px #ffffff,
+              inset -4px -4px 8px #d5e3db;
 }
 
 @keyframes greenGlow {
-  0% { text-shadow: 0 0 4px rgba(16, 185, 129, 0.2); }
-  50% { text-shadow: 0 0 16px rgba(16, 185, 129, 0.6); }
-  100% { text-shadow: 0 0 4px rgba(16, 185, 129, 0.2); }
+  0% { text-shadow: 0 0 4px rgba(16, 185, 129, 0.1); }
+  50% { text-shadow: 0 0 12px rgba(16, 185, 129, 0.3); }
+  100% { text-shadow: 0 0 4px rgba(16, 185, 129, 0.1); }
 }
 
 .glowing-title {
-  color: #FFFFFF;
+  color: #1a1a1a;
   font-size: 40px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -103,7 +103,7 @@
 }
 
 .intro-subtitle {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.6);
   font-size: 13px;
   margin-top: 16px;
   font-family: monospace;
@@ -127,12 +127,16 @@
 .badge {
   font-family: monospace;
   font-size: 11px;
-  padding: 5px 14px;
-  border-radius: 4px; 
+  padding: 6px 16px;
+  border-radius: 12px; 
   letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.05); 
-  color: rgba(255, 255, 255, 0.85); 
-  border: 1px solid rgba(255, 255, 255, 0.15); 
+  background: #ffffff; 
+  color: rgba(0, 0, 0, 0.8); 
+  border: 1px solid rgba(255, 255, 255, 0.6); 
+  box-shadow: 3px 3px 6px #d5e3db,
+              -3px -3px 6px #ffffff,
+              inset 1px 1px 2px #ffffff,
+              inset -1px -1px 2px #d5e3db;
   animation: fadeIn 0.8s ease forwards;
 }
 
@@ -156,25 +160,25 @@
   font-size: 13px;
   letter-spacing: 0.05em;
   padding: 12px 32px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  background: #FFFFFF;
-  color: #0A0A0A;
+  background: #10b981;
+  color: #ffffff;
   font-weight: 700;
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), 
-              -4px -4px 8px rgba(255, 255, 255, 0.05), 
-              inset 2px 2px 4px rgba(255, 255, 255, 0.3), 
-              inset -2px -2px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 6px 6px 12px #d5e3db,
+              -6px -6px 12px #ffffff,
+              inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+              inset -2px -2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-enter:hover { 
   transform: translateY(-2px);
-  box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.35), 
-              -6px -6px 12px rgba(255, 255, 255, 0.08), 
-              inset 2px 2px 4px rgba(255, 255, 255, 0.35), 
-              inset -2px -2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 8px 8px 16px #d5e3db,
+              -8px -8px 16px #ffffff,
+              inset 2px 2px 4px rgba(255, 255, 255, 0.5),
+              inset -2px -2px 4px rgba(0, 0, 0, 0.22);
 }
 
 .btn-skip {
@@ -183,18 +187,16 @@
   letter-spacing: 0.05em;
   padding: 12px 24px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(15, 18, 21, 0.4);
-  color: rgba(255, 255, 255, 0.7);
-  box-shadow: inset 3px 3px 6px #050607, 
-              inset -3px -3px 6px rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+  color: rgba(0, 0, 0, 0.6);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-skip:hover { 
-  color: #FFFFFF; 
-  border-color: #FFFFFF; 
+  color: #000000; 
+  border-color: rgba(0, 0, 0, 0.3); 
 }
 
 .status-bar {
@@ -205,14 +207,14 @@
   align-items: center;
   padding: 14px 3rem;
   background: transparent; 
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   z-index: 3;
 }
 
 .status-item { 
   font-family: monospace;
   font-size: 11px; 
-  color: rgba(255, 255, 255, 0.5); 
+  color: rgba(0, 0, 0, 0.4); 
   letter-spacing: 0.05em; 
 }
 
@@ -235,7 +237,7 @@
   width: 100vw;
   height: 100vh;
   z-index: 9999;
-  background-color: #0A0A0A;
+  background-color: #f9fafb;
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

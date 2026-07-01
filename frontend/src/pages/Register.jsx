@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import { useNavigate, Link } from 'react-router-dom'; 
-import greenAuthBg from '../assets/cute-leaves.jpg';
+import greenAuthBg from '../assets/greenish.jpg';
 
 const Register = () => {
     const { login } = useContext(AuthContext);
@@ -38,9 +38,8 @@ const Register = () => {
 
         try {
             const res = await axios.post('/api/auth/register', payload);
-            login(res.data.user, res.data.token);
-            showToast('Registration Successful!');
-            navigate('/dashboard'); 
+            showToast(res.data.message || 'Registration Successful! Awaiting admin verification.');
+            navigate('/login'); 
         } catch (err) {
             setError(err.response?.data?.error || 'Registration failed. Try again.');
         }

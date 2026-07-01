@@ -36,7 +36,7 @@ export default function IntroScreen({ onComplete }) {
   scale: 1.00,
   scaleMobile: 1.00,
             color: 0x10b981,
-            backgroundColor: 0x0a0a0a,
+            backgroundColor: 0xf9fafb,
             points: 17.00,
             maxDistance: 21.00,
             spacing: 16.00,
@@ -87,11 +87,8 @@ export default function IntroScreen({ onComplete }) {
           </div>
 
           <div className="cta-row">
-            <button className="btn-enter" onClick={handleEnter}>
+            <button className="btn-enter" style={{ width: '100%', maxWidth: '280px' }} onClick={handleEnter}>
               ACCESS ENVIRONMENT
-            </button>
-            <button className="btn-skip" onClick={handleEnter}>
-              Skip Setup
             </button>
           </div>
         </div>
