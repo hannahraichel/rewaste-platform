@@ -203,6 +203,79 @@ const Dashboard = () => {
         keywords: ''
     });
 
+    const getMaterialImage = (materialType) => {
+        const type = materialType || '';
+        if (type.includes('Wood') || type.includes('Timber') || type === 'Wood Mills') {
+            return (
+                <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', borderRadius: '16px' }}>
+                    <defs>
+                        <linearGradient id="woodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#f59e0b" />
+                            <stop offset="100%" stopColor="#b45309" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#woodGrad)" />
+                    <circle cx="50" cy="35" r="16" fill="#78350f" stroke="#ffffff" strokeWidth="2" />
+                    <circle cx="50" cy="35" r="10" fill="none" stroke="#f59e0b" strokeWidth="2" />
+                    <circle cx="50" cy="35" r="4" fill="none" stroke="#f59e0b" strokeWidth="2" />
+                    <circle cx="36" cy="65" r="16" fill="#78350f" stroke="#ffffff" strokeWidth="2" />
+                    <circle cx="36" cy="65" r="10" fill="none" stroke="#f59e0b" strokeWidth="2" />
+                    <circle cx="36" cy="65" r="4" fill="none" stroke="#f59e0b" strokeWidth="2" />
+                    <circle cx="64" cy="65" r="16" fill="#78350f" stroke="#ffffff" strokeWidth="2" />
+                    <circle cx="64" cy="65" r="10" fill="none" stroke="#f59e0b" strokeWidth="2" />
+                    <circle cx="64" cy="65" r="4" fill="none" stroke="#f59e0b" strokeWidth="2" />
+                </svg>
+            );
+        } else if (type.includes('Agro') || type.includes('Agriculture') || type === 'Agro-Processing') {
+            return (
+                <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', borderRadius: '16px' }}>
+                    <defs>
+                        <linearGradient id="agroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#34d399" />
+                            <stop offset="100%" stopColor="#047857" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#agroGrad)" />
+                    <path d="M50,20 C60,40 70,40 50,80 C30,40 40,40 50,20 Z" fill="#ffffff" opacity="0.9" />
+                    <path d="M50,30 L50,80" stroke="#047857" strokeWidth="2" />
+                    <path d="M50,45 C58,40 60,35 62,38" fill="none" stroke="#047857" strokeWidth="2" />
+                    <path d="M50,55 C42,50 40,45 38,48" fill="none" stroke="#047857" strokeWidth="2" />
+                </svg>
+            );
+        } else if (type.includes('Textile') || type === 'Textiles') {
+            return (
+                <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', borderRadius: '16px' }}>
+                    <defs>
+                        <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#60a5fa" />
+                            <stop offset="100%" stopColor="#1d4ed8" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#textGrad)" />
+                    <path d="M20,20 L80,20 M20,40 L80,40 M20,60 L80,60 M20,80 L80,80" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
+                    <path d="M30,10 L30,90 M50,10 L50,90 M70,10 L70,90" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
+                    <path d="M25,25 Q50,75 75,25" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
+                </svg>
+            );
+        } else {
+            return (
+                <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', borderRadius: '16px' }}>
+                    <defs>
+                        <linearGradient id="constGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#9ca3af" />
+                            <stop offset="100%" stopColor="#4b5563" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#constGrad)" />
+                    <rect x="20" y="25" width="26" height="18" fill="#ffffff" rx="2" />
+                    <rect x="52" y="25" width="28" height="18" fill="#ffffff" rx="2" />
+                    <rect x="15" y="49" width="30" height="18" fill="#ffffff" rx="2" />
+                    <rect x="51" y="49" width="34" height="18" fill="#ffffff" rx="2" />
+                </svg>
+            );
+        }
+    };
+
     const fetchSmartMatches = async () => {
         setLoading(true);
         setError('');
@@ -393,6 +466,190 @@ const Dashboard = () => {
         } catch (err) {
             showToast("Failed to moderate the requested listing.", "error");
         }
+    };
+
+    const handleGenerateReport = () => {
+        const reportWindow = window.open('', '_blank', 'width=800,height=900');
+        const timestamp = new Date().toLocaleString();
+        
+        const industriesHTML = adminData.industries.map(ind => `
+            <tr>
+                <td>${ind.company_name}</td>
+                <td>${ind.email}</td>
+                <td>${ind.industry_type}</td>
+                <td>${ind.district}, ${ind.state}</td>
+                <td>${ind.is_verified ? 'Verified' : 'Pending'}</td>
+            </tr>
+        `).join('');
+
+        const listingsHTML = adminData.listings.map(list => `
+            <tr>
+                <td>${list.title}</td>
+                <td>${list.company_name}</td>
+                <td>${list.material_type}</td>
+                <td>${list.quantity} ${list.unit.toUpperCase()}</td>
+                <td>${list.is_available ? 'Active' : 'Closed'}</td>
+            </tr>
+        `).join('');
+
+        reportWindow.document.write(`
+            <html>
+                <head>
+                    <title>ReWaste Platform - Operations Report</title>
+                    <style>
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                            color: #111827;
+                            padding: 40px;
+                            line-height: 1.5;
+                        }
+                        .header {
+                            border-bottom: 2px solid #10b981;
+                            padding-bottom: 20px;
+                            margin-bottom: 30px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        }
+                        .logo {
+                            font-size: 24px;
+                            font-weight: 800;
+                            color: #047857;
+                            letter-spacing: -0.02em;
+                        }
+                        .title {
+                            font-size: 11px;
+                            font-family: monospace;
+                            color: #6b7280;
+                            text-transform: uppercase;
+                        }
+                        .kpi-container {
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 20px;
+                            margin-bottom: 40px;
+                        }
+                        .kpi-card {
+                            border: 1px solid #e5e7eb;
+                            border-radius: 12px;
+                            padding: 20px;
+                            background: #f9fafb;
+                        }
+                        .kpi-val {
+                            font-size: 24px;
+                            font-weight: 700;
+                            color: #111827;
+                            margin-top: 5px;
+                        }
+                        .section-title {
+                            font-size: 14px;
+                            font-weight: 700;
+                            text-transform: uppercase;
+                            border-bottom: 1px solid #e5e7eb;
+                            padding-bottom: 8px;
+                            margin: 30px 0 15px 0;
+                            color: #1f2937;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                            font-size: 12px;
+                        }
+                        th, td {
+                            text-align: left;
+                            padding: 10px 12px;
+                            border-bottom: 1px solid #e5e7eb;
+                        }
+                        th {
+                            background-color: #f3f4f6;
+                            color: #374151;
+                            font-weight: 600;
+                        }
+                        .footer {
+                            margin-top: 60px;
+                            border-top: 1px solid #e5e7eb;
+                            padding-top: 20px;
+                            font-size: 11px;
+                            color: #9ca3af;
+                            text-align: center;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <div class="logo">ReWaste Platform</div>
+                            <div class="title">Ecosystem Operations Report</div>
+                        </div>
+                        <div style="text-align: right; font-size: 12px; color: #6b7280;">
+                            Generated: ${timestamp}
+                        </div>
+                    </div>
+
+                    <div class="kpi-container">
+                        <div class="kpi-card">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #6b7280; font-weight: 600;">Total Facilities</div>
+                            <div class="kpi-val">${adminData.summary?.total_industries || 0} Units</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #6b7280; font-weight: 600;">Active Offers</div>
+                            <div class="kpi-val">${adminData.summary?.total_listings || 0} Listings</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #6b7280; font-weight: 600;">Savings Accumulated</div>
+                            <div class="kpi-val">${adminData.summary?.global_tons_diverted || 0} Tons</div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Verified Network Units</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Company Name</th>
+                                <th>Email</th>
+                                <th>Industry Type</th>
+                                <th>Region</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${industriesHTML || '<tr><td colspan="5">No registered industries found.</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <div class="section-title">All Directory Offers</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Material Title</th>
+                                <th>Company</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${listingsHTML || '<tr><td colspan="5">No active listings found.</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <div class="footer">
+                        ReWaste Workspace Engine • Kerala Industrial Symbiosis Hub • System Operations Summary
+                    </div>
+                    
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(function() {
+                                window.close();
+                            }, 500);
+                        }
+                    </script>
+                </body>
+            </html>
+        `);
+        reportWindow.document.close();
     };
 
     const openChatBotDrawer = (deal) => {
@@ -746,8 +1003,27 @@ const Dashboard = () => {
                 {isAdminMode && user?.is_admin ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                         
-                         {/* KPI Cards Row (Admin) */}
-                         <div className="kpi-grid">
+                        {/* Header Title Board & Report Export Control */}
+                        <div className="clay-card" style={{ padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box' }}>
+                            <div style={{ textAlign: 'left' }}>
+                                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', fontFamily: 'var(--font-display)', color: 'var(--black)', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
+                                    ADMINISTRATIVE INTELLIGENCE MONITOR
+                                </h2>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--gray-400)', fontFamily: 'var(--font-mono)', fontWeight: '700' }}>
+                                    VERIFY BUSINESS NODES • MODERATE ACTIVE DIRECTORIES • EXPORT SYSTEM ANALYTICS
+                                </p>
+                            </div>
+                            <button 
+                                onClick={handleGenerateReport}
+                                className="clay-btn-primary"
+                                style={{ width: 'auto', padding: '12px 24px', fontSize: '11px', letterSpacing: '0.08em', fontWeight: '700', cursor: 'pointer' }}
+                            >
+                                EXPORT PDF REPORT
+                            </button>
+                        </div>
+
+                        {/* KPI Cards Row (Admin) */}
+                        <div className="kpi-grid">
                              <div className="clay-card" style={{ padding: '24px', textAlign: 'left' }}>
                                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', fontWeight: '600' }}>TOTAL FACILITIES</div>
                                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '48px', fontWeight: '700', color: 'var(--black)', margin: '0 0 12px 0', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -914,8 +1190,14 @@ const Dashboard = () => {
                                         ) : (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '550px', overflowY: 'auto', paddingRight: '4px' }}>
                                                 {getSortedMatches().map((listing) => (
-                                                    <div key={listing.id} className="clay-card" style={{ border: '1px solid var(--clay-input-border)', borderRadius: '12px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <div style={{ flex: 1, paddingRight: '16px', textAlign: 'left' }}>
+                                                    <div key={listing.id} className="clay-card" style={{ border: '1px solid var(--clay-input-border)', borderRadius: '12px', padding: '20px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+                                                        {/* Themed thumbnail picture */}
+                                                        <div style={{ width: '80px', height: '80px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            {getMaterialImage(listing.material_type)}
+                                                        </div>
+
+                                                        {/* Text details */}
+                                                        <div style={{ flex: 1, textAlign: 'left' }}>
                                                             <div style={{ display: 'inline-flex', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold', fontSize: '11px', marginBottom: '8px' }}>
                                                                 <Percent size={12} /> {listing.match_score ? `${listing.match_score}% Match Ranking` : 'Manual Search Hit'}
                                                             </div>
@@ -1046,7 +1328,11 @@ const Dashboard = () => {
                                             ) : (
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                     {myInventory.map((item) => (
-                                                        <div key={item.id} className="clay-row" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <div key={item.id} className="clay-row" style={{ padding: '16px 20px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                                                            {/* Tiny themed thumbnail */}
+                                                            <div style={{ width: '48px', height: '48px', flexShrink: 0 }}>
+                                                                {getMaterialImage(item.material_type)}
+                                                            </div>
                                                             <div style={{ textAlign: 'left', flex: 1, marginRight: '12px' }}>
                                                                 <h4 style={{ margin: 0, color: 'var(--black)', fontSize: '13px', fontWeight: '600' }}>{item.title}</h4>
                                                                 <p style={{ margin: '4px 0 0 0', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray-400)', fontWeight: '700' }}>
@@ -1150,7 +1436,11 @@ const Dashboard = () => {
                                     ) : (
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                                             {myInventory.map((item) => (
-                                                <div key={item.id} className="clay-row" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div key={item.id} className="clay-row" style={{ padding: '16px 20px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                                                    {/* Tiny themed thumbnail */}
+                                                    <div style={{ width: '48px', height: '48px', flexShrink: 0 }}>
+                                                        {getMaterialImage(item.material_type)}
+                                                    </div>
                                                     <div style={{ textAlign: 'left', flex: 1, marginRight: '12px' }}>
                                                         <h4 style={{ margin: 0, color: 'var(--black)', fontSize: '13px', fontWeight: '600' }}>{item.title}</h4>
                                                         <p style={{ margin: '4px 0 0 0', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray-400)', fontWeight: '700' }}>
